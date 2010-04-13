@@ -135,17 +135,16 @@ class AutoModeler extends Model
 		{
 			if ($this->_data['id']) // Do an update
 			{
-				//die(Kohana::debug());
-				return count(db::update($this->_table_name, array_diff_assoc($this->_data, array('id' => $this->_data['id'])), array(array('id', '=', $this->_data['id'])))->execute($this->_db));
+				return count(db::update($this->_table_name)->set(array_diff_assoc($this->_data, array('id' => $this->_data['id'])))->where('id', '=', $this->_data['id'])->execute($this->_db));
 			}
 			else // Do an insert
 			{
-				$id = db::insert($this->_table_name, $this->_data)->execute($this->_db)->insert_id();
-				return ($this->_data['id'] = $id);
+				$id = db::insert($this->_table_name)->values($this->_data)->execute($this->_db);
+				return ($this->_data['id'] = $id[0]);
 			}
 		}
 
-		throw new Auto_Modeler_Exception('auto_modeler.validation_error', $status['string'], $status['errors']);
+		throw new AutoModeler_Exception($status['string'], array(), $status['errors']);
 	}
 
 	// Deletes the current record and destroys the object
@@ -162,7 +161,7 @@ class AutoModeler extends Model
 	// $direction - the direction to sort
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
 	// Does a basic search on the table.
@@ -173,7 +172,7 @@ class AutoModeler extends Model
 	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
 	// Returns an associative array to use in dropdowns and other widgets
@@ -234,11 +233,16 @@ class AutoModeler extends Model
 
 class AutoModeler_Exception extends Kohana_Exception
 {
-	public $errors = array();
+	public $errors;
 
 	public function __construct($title, $message, $errors)
 	{
 		parent::__construct($title, $message);
 		$this->errors = $errors;
+	}
+
+	public function __toString()
+	{
+		return $this->message;
 	}
 }
