@@ -32,7 +32,7 @@ class AutoModeler extends Model implements ArrayAccess
 		if ($id != NULL)
 		{
 			// try and get a row with this ID
-			$data = db::build()->select('*')->from($this->_table_name)->where('id', '=', $id)->execute($this->db)->as_array();
+			$data = db::build()->select('*')->from($this->_table_name)->where('id', '=', $id)->execute($this->_db)->as_array();
 
 			// try and assign the data
 			if (count($data) == 1 AND $data = $data->current())
@@ -67,7 +67,7 @@ class AutoModeler extends Model implements ArrayAccess
 
 	public function __wakeup()
 	{
-		$this->db = Database::instance($this->db);
+		$this->_db = Database::instance($this->_db);
 	}
 
 	public function as_array()
@@ -136,11 +136,11 @@ class AutoModeler extends Model implements ArrayAccess
 			if ($this->_data['id']) // Do an update
 			{
 				//die(Kohana::debug());
-				return count(db::update($this->_table_name, array_diff_assoc($this->_data, array('id' => $this->_data['id'])), array(array('id', '=', $this->_data['id'])))->execute($this->db));
+				return count(db::update($this->_table_name, array_diff_assoc($this->_data, array('id' => $this->_data['id'])), array(array('id', '=', $this->_data['id'])))->execute($this->_db));
 			}
 			else // Do an insert
 			{
-				$id = db::insert($this->_table_name, $this->_data)->execute($this->db)->insert_id();
+				$id = db::insert($this->_table_name, $this->_data)->execute($this->_db)->insert_id();
 				return ($this->_data['id'] = $id);
 			}
 		}
@@ -153,7 +153,7 @@ class AutoModeler extends Model implements ArrayAccess
 	{
 		if ($this->_data['id'])
 		{
-			return db::delete($this->_table_name, array(array('id', '=', $this->_data['id'])))->execute($this->db);
+			return db::delete($this->_table_name, array(array('id', '=', $this->_data['id'])))->execute($this->_db);
 		}
 	}
 
@@ -162,7 +162,7 @@ class AutoModeler extends Model implements ArrayAccess
 	// $direction - the direction to sort
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::build()->select('*')->from($this->_table_name)->order_by($order_by, $direction)->execute($this->db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::build()->select('*')->from($this->_table_name)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 	}
 
 	// Does a basic search on the table.
@@ -173,7 +173,7 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		return db::build()->select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->execute($this->db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::build()->select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 	}
 
 	// Returns an associative array to use in dropdowns and other widgets
