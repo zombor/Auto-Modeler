@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model implements ArrayAccess
+class AutoModeler extends Model
 {
 	// The database table name
 	protected $_table_name = '';
@@ -32,7 +32,7 @@ class AutoModeler extends Model implements ArrayAccess
 		if ($id != NULL)
 		{
 			// try and get a row with this ID
-			$data = db::build()->select('*')->from($this->_table_name)->where('id', '=', $id)->execute($this->_db)->as_array();
+			$data = db::select('*')->from($this->_table_name)->where('id', '=', $id)->execute($this->_db);
 
 			// try and assign the data
 			if (count($data) == 1 AND $data = $data->current())
@@ -78,9 +78,9 @@ class AutoModeler extends Model implements ArrayAccess
 	// Useful for one line method chaining
 	// $model - The model name to make
 	// $id - an id to create the model with
-	public static function factory($model = FALSE, $id = FALSE)
+	public static function factory($model, $id = FALSE)
 	{
-		$model = empty($model) ? __CLASS__ : ucfirst($model).'_Model';
+		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
 		return new $model($id);
 	}
 
@@ -162,7 +162,7 @@ class AutoModeler extends Model implements ArrayAccess
 	// $direction - the direction to sort
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::build()->select('*')->from($this->_table_name)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 	}
 
 	// Does a basic search on the table.
@@ -173,7 +173,7 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		return db::build()->select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->execute($this->_db)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 	}
 
 	// Returns an associative array to use in dropdowns and other widgets
