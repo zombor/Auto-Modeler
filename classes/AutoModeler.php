@@ -25,6 +25,12 @@ class AutoModeler extends Model
 
 	protected $_lang = 'form_errors';
 
+	/**
+	 * Standard constructor, accepts an `id` column to look for
+	 *
+	 * @param string $id  an id to search for
+	 *
+	 */
 	public function __construct($id = NULL)
 	{
 		parent::__construct();
@@ -43,13 +49,25 @@ class AutoModeler extends Model
 		}
 	}
 
-	// Magic __get() method
+	/**
+	 * Magic get method, gets model properties from the db
+	 *
+	 * @param string $key the field name to look for
+	 *
+	 * @return String
+	 */
 	public function __get($key)
 	{
 		return isset($this->_data[$key]) ? $this->_data[$key] : NULL;
 	}
 
-	// Magic __set() method
+	/**
+	 * Magic get method, gets model properties from the db
+	 *
+	 * @param string $key   the field name to set
+	 * @param string $value the value to set to
+	 *
+	 */
 	public function __set($key, $value)
 	{
 		if (array_key_exists($key, $this->_data))
@@ -59,34 +77,57 @@ class AutoModeler extends Model
 		}
 	}
 
+	/**
+	 * sleep method for serialization
+	 *
+	 * @return array
+	 */
 	public function __sleep()
 	{
 		// Store only information about the object without db property
 		return array_diff(array_keys(get_object_vars($this)), array('db'));
 	}
 
+	/**
+	 * wakeup method for serialization
+	 *
+	 */
 	public function __wakeup()
 	{
 		$this->_db = Database::instance($this->_db);
 	}
 
+	/**
+	 * Gets an array version of the model
+	 *
+	 * @return array
+	 */
 	public function as_array()
 	{
 		return $this->_data;
 	}
 
-	// Useful for one line method chaining
-	// $model - The model name to make
-	// $id - an id to create the model with
+	/**
+	 * Useful for chaining
+	 *
+	 * @param string $model the model name
+	 * @param int    $id    an id to pass to the constructor
+	 *
+	 * @return Object
+	 */
 	public static function factory($model, $id = FALSE)
 	{
 		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
 		return new $model($id);
 	}
 
-	// Allows for setting data fields in bulk
-	// $data - associative array to set $this->data to
-	public function set_fields($data)
+	/**
+	 * Mass sets object properties
+	 *
+	 * @param array $data the data to set
+	 *
+	 */
+	public function set_fields(array $data)
 	{
 		foreach ($data as $key => $value)
 		{
@@ -95,11 +136,25 @@ class AutoModeler extends Model
 		}
 	}
 
+	/**
+	 * Returns errors for this model
+	 *
+	 * @param string $lang the messages file to use
+	 *
+	 * @return array
+	 */
 	public function errors($lang = NULL)
 	{
 		return $this->_validation != NULL ? $this->_validation->errors($lang) : array();
 	}
 
+	/**
+	 * Determines the validity of this object
+	 *
+	 * @param mixed $validation a manual validation object to combine the model properties with
+	 *
+	 * @return mixed
+	 */
 	public function valid($validation = NULL)
 	{
 		$data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validate::factory($this->_data);
@@ -126,7 +181,13 @@ class AutoModeler extends Model
 		}
 	}
 
-	// Saves the current object
+	/**
+	 * Saves the current object
+	 *
+	 * @param mixed $validation a manual validation object to combine the model properties with
+	 *
+	 * @return int
+	 */
 	public function save($validation = NULL)
 	{
 		$status = $this->_validated ? TRUE : $this->valid($validation);
@@ -147,7 +208,11 @@ class AutoModeler extends Model
 		throw new AutoModeler_Exception($status['string'], array(), $status['errors']);
 	}
 
-	// Deletes the current record and destroys the object
+	/**
+	 * Deletes the current object from the database
+	 *
+	 * @return array
+	 */
 	public function delete()
 	{
 		if ($this->_data['id'])
@@ -156,30 +221,45 @@ class AutoModeler extends Model
 		}
 	}
 
-	// Fetches all rows in the table
-	// $order_by - the ORDER BY value to sort by
-	// $direction - the direction to sort
+	/**
+	 * fetches all rows in the database for this model
+	 *
+	 * @param string $order_by  a column to order on
+	 * @param string $direction the direction to sort
+	 *
+	 * @return Database_Result
+	 */
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
 		return db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
-	// Does a basic search on the table.
-	// $where - the where clause to search on
-	// $order_by - the ORDER BY value to sort by
-	// $direction - the direction to sort
-	// $type - pass 'or' here to do a orwhere
+	/**
+	 * Same as fetch_all except you can pass a where clause
+	 *
+	 * @param array  $where     the where clause
+	 * @param string $order_by  a column to order on
+	 * @param string $direction the direction to sort
+	 * @param string $type      the type of where to run
+	 *
+	 * @return Database_Result
+	 */
 	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
 		return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
-	// Returns an associative array to use in dropdowns and other widgets
-	// $key - the key column of the array
-	// $display - the value column of the array
-	// $order_by - the direction to sort
-	// $where - an optional where array to be passed if you don't want every record
+	/**
+	 * Same as fetch_where except you get a nice array back for form::dropdown()
+	 *
+	 * @param array  $key       the key to use for the array
+	 * @param array  $where     the value to use for the display
+	 * @param string $order_by  a column to order on
+	 * @param array  $where     the where clause
+	 *
+	 * @return Database_Result
+	 */
 	public function select_list($key, $display, $order_by = 'id', $where = array())
 	{
 		$rows = array();

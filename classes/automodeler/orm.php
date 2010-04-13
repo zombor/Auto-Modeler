@@ -13,6 +13,13 @@ class AutoModeler_ORM extends AutoModeler
 	protected $_has_many = array();
 	protected $_belongs_to = array();
 
+	/**
+	 * Magic get method, can obtain one to many relationships
+	 *
+	 * @param String $key the key to __get
+	 *
+	 * @return mixed
+	 */
 	public function __get($key)
 	{
 		// See if we are requesting a foreign key
@@ -23,6 +30,14 @@ class AutoModeler_ORM extends AutoModeler
 			return $this->_data[$key];
 	}
 
+	/**
+	 * Magic set method, can set many to many relationships
+	 *
+	 * @param string $key the key to set
+	 * @param mixed  $value the value to set the key to
+	 *
+	 * @return none
+	 */
 	public function __set($key, $value)
 	{
 		if (in_array($key, $this->_has_many))
@@ -52,7 +67,15 @@ class AutoModeler_ORM extends AutoModeler
 			parent::__set($key, $value);
 	}
 
-	public function relate($key, array $values, $overwrite = FALSE)
+	/**
+	 * Performs mass relations
+	 *
+	 * @param string $key    the key to set
+	 * @param array  $values an array of values to relate the model with
+	 *
+	 * @return none
+	 */
+	public function relate($key, array $values)
 	{
 		if (in_array($key, $this->_has_many))
 		{
@@ -68,6 +91,16 @@ class AutoModeler_ORM extends AutoModeler
 		}
 	}
 
+	/**
+	 * Finds many to many relationships
+	 *
+	 * @param string $key      the model name to look for
+	 * @param array  $where    an array of where clauses to apply to the search
+	 * @param array  $order_by the column to order by
+	 * @param array  $order    the direction to order
+	 *
+	 * @return Database_Result
+	 */
 	public function find_related($key, $where = array(), $order_by = 'id', $order = 'ASC')
 	{
 		$model = 'Model_'.inflector::singular($key);
@@ -96,7 +129,17 @@ class AutoModeler_ORM extends AutoModeler
 		}
 	}
 
-	public function find_parent($key = NULL, $where = array(), $order_by = 'id', $order = 'ASC')
+	/**
+	 * Finds parents of a belongs_to model
+	 *
+	 * @param string $key      the model name to look for
+	 * @param array  $where    an array of where clauses to apply to the search
+	 * @param array  $order_by the column to order by
+	 * @param array  $order    the direction to order
+	 *
+	 * @return Database_Result
+	 */
+	public function find_parent($key, $where = array(), $order_by = 'id', $order = 'ASC')
 	{
 		if ($this->has_attribute($key.'_id')) // Look for a one to many relationship
 		{
@@ -116,7 +159,14 @@ class AutoModeler_ORM extends AutoModeler
 		}
 	}
 
-	// Value is an ID
+	/**
+	 * Tests if a many to many relationship exists
+	 *
+	 * @param string $key   the model name to look for
+	 * @param string $value an id to search for
+	 *
+	 * @return bool
+	 */
 	public function has($key, $value)
 	{
 		$join_table = $this->_table_name.'_'.$key;
@@ -130,13 +180,26 @@ class AutoModeler_ORM extends AutoModeler
 		return FALSE;
 	}
 
-	// Removes a relationship
+	/**
+	 * Removes a relationship if you aren't using innoDB (shame on you!)
+	 *
+	 * @param string $key the model name to look for
+	 * @param string $id  an id to search for
+	 *
+	 * @return Database_Result
+	 */
 	public function remove($key, $id)
 	{
 		return db::delete($this->_table_name.'_'.inflector::plural($key))->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
 	}
 
-	// Removes all relationships of $key in the join table
+	/**
+	 * Removes all relationships of a model
+	 *
+	 * @param string $key the model name to look for
+	 *
+	 * @return Database_Result
+	 */
 	public function remove_all($key)
 	{
 		if (in_array($key, $this->_has_many))
@@ -149,7 +212,13 @@ class AutoModeler_ORM extends AutoModeler
 		}
 	}
 
-	// Removes all parent relationships of $key in the join table
+	/**
+	 * Removes a parent relationship of a belongs_to
+	 *
+	 * @param string $key the model name to look for
+	 *
+	 * @return Database_Result
+	 */
 	public function remove_parent($key)
 	{
 		return db::delete($key.'_'.$this->_table_name)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
