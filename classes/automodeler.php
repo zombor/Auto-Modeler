@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model
+class AutoModeler extends Model implements ArrayAccess
 {
 	// The database table name
 	protected $_table_name = '';
@@ -284,6 +284,13 @@ class AutoModeler extends Model
 		return $rows;
 	}
 
+	/**
+	 * Tests to see if an attribute exists in the model
+	 *
+	 * @param array  $key       the key to check
+	 *
+	 * @return Database_Result
+	 */
 	public function has_attribute($key)
 	{
 		return array_key_exists($key, $this->_data);
