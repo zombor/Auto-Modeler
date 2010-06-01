@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class Model_Role extends AutoModelerORM {
+class Model_Role extends AutoModeler_ORM {
 
 	protected $_table_name = 'roles';
 

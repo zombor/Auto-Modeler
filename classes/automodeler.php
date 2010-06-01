@@ -229,7 +229,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	{
 		if ($this->_data['id'])
 		{
-			return db::delete($this->_table_name, array(array('id', '=', $this->_data['id'])))->execute($this->_db);
+			return db::delete($this->_table_name)->where('id','=',$this->_data['id'])->execute($this->_db);
 		}
 	}
 
