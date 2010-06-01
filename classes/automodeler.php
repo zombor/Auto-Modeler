@@ -335,27 +335,27 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	}
 
 	// Iterable interface
-	function rewind()
+	public function rewind()
 	{
 		return reset($this->_data);
 	}
 
-	function current()
+	public function current()
 	{
 		return current($this->_data);
 	}
 
-	function key()
+	public function key()
 	{
 		return key($this->_data);
 	}
 
-	function next()
+	public function next()
 	{
 		return next($this->_data);
 	}
 
-	function valid()
+	public function valid()
 	{
 		return key($this->_data) !== null;
 	}
