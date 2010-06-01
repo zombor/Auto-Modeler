@@ -3,12 +3,12 @@
  * Auto_Modeler Auth driver.
  *
  * @package     Auth
- * @package     AutoModeler
+ * @package     Auto_Modeler
  * @author      Jeremy Bush
  * @copyright   (c) 2008 Jeremy Bush
  * @license     http://www.opensource.org/licenses/isc-license.txt
  */
-class Auth_AutoModelerORM {
+class Auth_AutoModelerORM_Driver extends Auth_Driver {
 
 	protected $config;
 

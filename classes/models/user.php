@@ -7,7 +7,7 @@
 * @copyright     (c) 2008 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class Model_User extends AutoModeler_ORM {
+class Model_User extends AutoModelerORM {
 
 	protected $_table_name = 'users';
 

@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model implements ArrayAccess, Iterator
+class AutoModeler extends Model implements ArrayAccess
 {
 	// The database table name
 	protected $_table_name = '';
@@ -98,18 +98,6 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	}
 
 	/**
-	 * Magic isset method to test _data
-	 *
-	 * @param string $name the property to test
-	 *
-	 * @return bool
-	 */
-	public function __isset($name)
-	{
-		return isset($this->_data[$name]);
-	}
-
-	/**
 	 * Gets an array version of the model
 	 *
 	 * @return array
@@ -167,7 +155,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 *
 	 * @return mixed
 	 */
-	public function is_valid($validation = NULL)
+	public function valid($validation = NULL)
 	{
 		$data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validate::factory($this->_data);
 
@@ -229,7 +217,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	{
 		if ($this->_data['id'])
 		{
-			return db::delete($this->_table_name)->where('id','=',$this->_data['id'])->execute($this->_db);
+			return db::delete($this->_table_name, array(array('id', '=', $this->_data['id'])))->execute($this->_db);
 		}
 	}
 
@@ -256,15 +244,10 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 *
 	 * @return Database_Result
 	 */
-	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
+	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select('*')->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
-
-		foreach ($wheres as $where)
-			$query->$function($where[0], $where[1], $where[2]);
-
-		return $query->execute($this->_db);
+		return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
 	/**
@@ -332,32 +315,6 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	public function offsetUnset($key)
 	{
 		$this->_data[$key] = NULL;
-	}
-
-	// Iterable interface
-	public function rewind()
-	{
-		return reset($this->_data);
-	}
-
-	public function current()
-	{
-		return current($this->_data);
-	}
-
-	public function key()
-	{
-		return key($this->_data);
-	}
-
-	public function next()
-	{
-		return next($this->_data);
-	}
-
-	public function valid()
-	{
-		return key($this->_data) !== null;
 	}
 }
 
