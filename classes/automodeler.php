@@ -127,7 +127,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 *
 	 * @return Object
 	 */
-	public static function factory($model, $id = FALSE)
+	public static function factory($model = null, $id = FALSE)
 	{
 		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
 		return new $model($id);
