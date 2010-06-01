@@ -1,0 +1,130 @@
+***************
+*** 7,13 ****
+  * @copyright      (c) 2010 Jeremy Bush
+  * @license        http://www.opensource.org/licenses/isc-license.txt
+  */
+- class AutoModeler extends Model implements ArrayAccess
+  {
+         // The database table name
+         protected $_table_name = '';
+--- 7,13 ----
+  * @copyright      (c) 2010 Jeremy Bush
+  * @license        http://www.opensource.org/licenses/isc-license.txt
+  */
++ class AutoModeler extends Model implements ArrayAccess, Iterator
+  {
+         // The database table name
+         protected $_table_name = '';
+***************
+*** 98,103 ****
+         }
+  
+         /**
+          * Gets an array version of the model
+          *
+          * @return array
+--- 98,115 ----
+         }
+  
+         /**
++         * Magic isset method to test _data
++         *
++         * @param string $name the property to test
++         *
++         * @return bool
++         */
++        public function __isset($name)
++        {
++                return isset($this->_data[$name]);
++        }
++ 
++        /**
+          * Gets an array version of the model
+          *
+          * @return array
+***************
+*** 155,161 ****
+          *
+          * @return mixed
+          */
+-        public function valid($validation = NULL)
+         {
+                 $data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validat
+  
+--- 167,173 ----
+          *
+          * @return mixed
+          */
++        public function is_valid($validation = NULL)
+         {
+                 $data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validat
+  
+***************
+*** 244,253 ****
+          *
+          * @return Database_Result
+          */
+-        public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
+         {
+                 $function = $type.'_where';
+-                return db::select('*')->from($this->_table_name)->$function($where)->order_by($order_by, $direction)->as_ob
+         }
+  
+         /**
+--- 256,270 ----
+          *
+          * @return Database_Result
+          */
++        public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
+         {
+                 $function = $type.'_where';
++                $query = db::select('*')->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($
++ 
++                foreach ($wheres as $where)
++                        $query->$function($where[0], $where[1], $where[2]);
++ 
++                return $query->execute($this->_db);
+         }
+  
+         /**
+***************
+*** 316,321 ****
+         {
+                 $this->_data[$key] = NULL;
+         }
+  }
+  
+  class AutoModeler_Exception extends Kohana_Exception
+--- 333,364 ----
+         {
+                 $this->_data[$key] = NULL;
+         }
++ 
++        // Iterable interface
++        function rewind()
++        {
++                return reset($this->_data);
++        }
++ 
++        function current()
++        {
++                return current($this->_data);
++        }
++ 
++        function key()
++        {
++                return key($this->_data);
++        }
++ 
++        function next()
++        {
++                return next($this->_data);
++        }
++ 
++        function valid()
++        {
++                return key($this->_data) !== null;
++        }
+  }
+  
+  class AutoModeler_Exception extends Kohana_Exception
