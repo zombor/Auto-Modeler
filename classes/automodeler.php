@@ -259,7 +259,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select('*')->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($
+		$query = db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
