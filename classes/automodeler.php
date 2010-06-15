@@ -202,7 +202,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 */
 	public function save($validation = NULL)
 	{
-		$status = $this->_validated ? TRUE : $this->valid($validation);
+		$status = $this->_validated ? TRUE : $this->is_valid($validation);
 
 		if ($status === TRUE)
 		{
