@@ -60,7 +60,10 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 */
 	public function __get($key)
 	{
-		return isset($this->_data[$key]) ? $this->_data[$key] : NULL;
+		if (array_key_exists($key, $this->_data))
+		 	return $this->_data[$key];
+
+		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
 	}
 
 	/**
@@ -76,7 +79,10 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 		{
 			$this->_data[$key] = $value;
 			$this->_validated = FALSE;
+			return;
 		}
+
+		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
 	}
 
 	/**
@@ -87,7 +93,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	public function __sleep()
 	{
 		// Store only information about the object without db property
-		return array_diff(array_keys(get_object_vars($this)), array('db'));
+		return array_diff(array_keys(get_object_vars($this)), array('_db'));
 	}
 
 	/**
@@ -231,8 +237,10 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	{
 		if ($this->_data['id'])
 		{
-			return db::delete($this->_table_name, array('id', '=', $this->_data['id']))->execute($this->_db);
+			return db::delete($this->_table_name)->where('id', '=', $this->_data['id'])->execute($this->_db);
 		}
+
+		throw new AutoModeler_Exception('Cannot delete a non-saved model '.get_class($this).'!', array(), array());
 	}
 
 	/**
@@ -303,18 +311,6 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 		return $rows;
 	}
 
-	/**
-	 * Tests to see if an attribute exists in the model
-	 *
-	 * @param array  $key       the key to check
-	 *
-	 * @return Database_Result
-	 */
-	public function has_attribute($key)
-	{
-		return array_key_exists($key, $this->_data);
-	}
-
 	// Array Access Interface
 	public function offsetExists($key)
 	{
@@ -328,7 +324,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 
 	public function offsetGet($key)
 	{
-		return $this->__get($key);
+		return $this->$key;
 	}
 
 	public function offsetUnset($key)
