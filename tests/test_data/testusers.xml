@@ -1,0 +1,5 @@
+<dataset>
+	<testusers id="1" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" />
+	<testusers id="2" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" />
+	<testusers id="3" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" />
+</dataset>
