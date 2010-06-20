@@ -9,6 +9,8 @@
 */
 class AutoModeler extends Model implements ArrayAccess, Iterator
 {
+	const VERSION = 3.2;
+
 	// The database table name
 	protected $_table_name = '';
 
@@ -202,7 +204,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 */
 	public function save($validation = NULL)
 	{
-		$status = $this->_validated ? TRUE : $this->valid($validation);
+		$status = $this->_validated ? TRUE : $this->is_valid($validation);
 
 		if ($status === TRUE)
 		{
@@ -223,13 +225,13 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	/**
 	 * Deletes the current object from the database
 	 *
-	 * @return array
+	 * @return integer
 	 */
 	public function delete()
 	{
 		if ($this->_data['id'])
 		{
-			return db::delete($this->_table_name, array(array('id', '=', $this->_data['id'])))->execute($this->_db);
+			return db::delete($this->_table_name, array('id', '=', $this->_data['id']))->execute($this->_db);
 		}
 	}
 
@@ -259,7 +261,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($
+		$query = db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
@@ -360,6 +362,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 		return key($this->_data) !== null;
 	}
 }
+
 class AutoModeler_Exception extends Kohana_Exception
 {
 	public $errors;
