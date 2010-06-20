@@ -135,7 +135,7 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 *
 	 * @return Object
 	 */
-	public static function factory($model, $id = FALSE)
+	public static function factory($model = null, $id = FALSE)
 	{
 		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
 		return new $model($id);
@@ -220,7 +220,10 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 			}
 			else // Do an insert
 			{
-				$id = db::insert($this->_table_name)->values($this->_data)->execute($this->_db);
+				$columns = array_keys($this->_data);
+				$id = db::insert($this->_table_name)
+						->columns($columns)
+						->values($this->_data)->execute($this->_db);
 				return ($this->_data['id'] = $id[0]);
 			}
 		}
