@@ -7,13 +7,13 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class Model_Role extends AutoModeler_ORM {
+class Model_TestRole extends AutoModeler_ORM {
 
-	protected $_table_name = 'roles';
+	protected $_table_name = 'testroles';
 
 	protected $_data = array('id' => '',
-	                        'name' => '');
+	                         'name' => '');
 
-	protected $_belongs_to = array('users');
+	protected $_belongs_to = array('ormusers');
 
 } // End Model_Role
