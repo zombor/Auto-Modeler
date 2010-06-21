@@ -141,7 +141,7 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function find_parent($key, $where = array(), $order_by = 'id', $order = 'ASC')
 	{
-		if ($this->has_attribute($key.'_id')) // Look for a one to many relationship
+		if (isset($this->{$key.'_id'})) // Look for a one to many relationship
 		{
 			$query = db::select()->from(inflector::plural($this->_table_name));
 			$query->where('id', '=', $this->_data[$key.'_id']);
@@ -155,7 +155,17 @@ class AutoModeler_ORM extends AutoModeler
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($key).'_id';
 
-			return db::select($key.'.*')->from($key)->order_by($order_by, $order)->where($where + array(array($join_table.'.'.$f_key, '=', $this->_data['id'])))->join($join_table, $join_table.'.'.$this_key, $key.'.id')->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db);
+			$query = db::select($key.'.*')
+				->from($key)
+				->order_by($order_by, $order)
+				->where($join_table.'.'.$f_key, '=', $this->_data['id'])
+				->join($join_table)
+				->on($join_table.'.'.$this_key, '=', $key.'.id')
+				->as_object('Model_'.inflector::singular(ucwords($key)));
+
+			foreach ($where as $sub_where)
+				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
+			return $query->execute($this->_db);
 		}
 	}
 
