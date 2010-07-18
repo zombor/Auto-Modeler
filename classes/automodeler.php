@@ -149,10 +149,9 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	 */
 	public function set_fields(array $data)
 	{
-		foreach ($data as $key => $value)
+		foreach (array_intersect_key($data, $this->_data) as $key => $value)
 		{
-			if (array_key_exists($key, $this->_data))
-				$this->$key = $value;
+			$this->$key = $value;
 		}
 	}
 
