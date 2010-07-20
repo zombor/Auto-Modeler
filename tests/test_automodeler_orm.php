@@ -15,20 +15,16 @@
  * `testrole_id` INT UNSIGNED NOT NULL
  * ) ENGINE = INNODB ;
  * 
- * CREATE TABLE  `automodeler`.`testroles` (
+ * CREATE TABLE `testroles` (
  * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
  * 
- * CREATE TABLE  `automodeler`.`ormusers_testroles` (
+ * CREATE TABLE `ormusers_testroles` (
  * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
- * `ormuser_id` INT UNSIGNED NOT NULL ,
- * `testrole_id` INT UNSIGNED NOT NULL
+ * `ormuser_id` INT UNSIGNED NOT NULL REFERENCES `ormusers` (`id`) ON DELETE CASCADE,
+ * `testrole_id` INT UNSIGNED NOT NULL REFERENCES `testroles` (`id`) ON DELETE CASCADE
  * ) ENGINE = INNODB;
- * ALTER TABLE  `automodeler`.`testusers_testroles` ADD INDEX (  `ormuser_id` );
- * ALTER TABLE  `automodeler`.`testusers_testroles` ADD INDEX (  `testrole_id` );
- * ALTER TABLE  `testusers_testroles` ADD FOREIGN KEY (  `ormuser_id` ) REFERENCES  `automodeler`.`ormusers` (`id`) ON DELETE CASCADE ;
- * ALTER TABLE  `testusers_testroles` ADD FOREIGN KEY (  `testrole_id` ) REFERENCES  `automodeler`.`testroles` (`id`) ON DELETE CASCADE ;
  * 
  *
  * @group automodeler_orm
