@@ -208,4 +208,31 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->remove($related_model, $related_id));
 		$this->assertFalse($model->has($related_model, $related_id));
 	}
+
+	public function provider_remove_all()
+	{
+		return array(
+			array('Model_ORMUser', 1, 'testroles', 2),
+			array('Model_ORMUser', 2, 'testroles', 1),
+
+			array('Model_TestRole', 1, 'ormusers', 2),
+			array('Model_TestRole', 2, 'ormusers', 1),
+
+			// Invalid relationships
+			array('Model_ORMUser', 1, 'ormusers', NULL),
+			array('Model_TestRole', 1, 'testroles', NULL),
+		);
+	}
+
+	/**
+	 * @dataProvider provider_remove_all
+	 *
+	 * @covers AutoModeler_ORM::remove_all
+	 */
+	public function test_remove_all($model_name, $model_id, $related_model, $expected)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected, $model->remove_all($related_model));
+	}
 }
