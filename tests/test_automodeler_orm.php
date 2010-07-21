@@ -51,35 +51,136 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		return $this->createFlatXMLDataSet(Kohana::find_file('tests', 'test_data/testuser_relationships', 'xml'));
 	}
 
-	/**
-	 * Provides test data for test_get_manytomany()
-	 *
-	 * @return array
-	 */
-	public function provider_get_manytomany()
+	public function provider_find_parent()
 	{
 		return array(
-			// $model_name, $model_id, $related_model, $expected_count, $related_id, $expected_has
-			array('Model_ORMUser', 1, 'testroles', 2, 1, TRUE),
-			array('Model_ORMUser', 2, 'testroles', 1, 3, FALSE),
+			array('Model_TestRole', 1, 'ormusers', 2),
+			array('Model_TestRole', 2, 'ormusers', 1),
 		);
 	}
 
 	/**
-	 * Tests obtaining a many to many relationship
+	 * @dataProvider provider_find_parent
 	 *
-	 * @test
-	 * @dataProvider provider_get_manytomany
-	 * @covers AutoModeler_ORM::find_related
-	 * @covers AutoModeler_ORM::has
-	 * @param string $str       String to parse
-	 * @param array  $expected  Callback and its parameters
+	 * @covers AutoModeler_ORM::find_parent
 	 */
-	public function test_get_manytomany($model_name, $model_id, $related_model, $expected_count, $related_id, $expected_has)
+	public function test_find_parent($model_name, $model_id, $related_model, $expected_count)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected_count, count($model->find_parent($related_model)));
+	}
+
+	public function provider_find_parent_where()
+	{
+		return array(
+			array('Model_TestRole', 1, 'ormusers', array(), 2),
+			array('Model_TestRole', 1, 'ormusers', array(array('ormusers.username', '=', 'foobar')), 1),
+		);
+	}
+
+	/**
+	 * @dataProvider provider_find_parent_where
+	 *
+	 * @covers AutoModeler_ORM::find_parent
+	 */
+	public function test_find_parent_where($model_name, $model_id, $related_model, $where, $expected_count)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected_count, count($model->find_parent($related_model, $where)));
+	}
+
+	/**
+	 * @dataProvider provider_find_related
+	 * @expectedException Database_Exception
+	 *
+	 * @covers AutoModeler_ORM::find_parent
+	 */
+	public function test_find_parent_wrong($model_name, $model_id, $related_model, $expected_count)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected_count, count($model->find_parent($related_model)));
+	}
+
+	public function provider_find_related()
+	{
+		return array(
+			array('Model_ORMUser', 1, 'testroles', 2),
+			array('Model_ORMUser', 2, 'testroles', 1),
+		);
+	}
+
+	/**
+	 * @dataProvider provider_find_related
+	 *
+	 * @covers AutoModeler_ORM::find_related
+	 */
+	public function test_find_related($model_name, $model_id, $related_model, $expected_count)
 	{
 		$model = new $model_name($model_id);
 
 		$this->assertSame($expected_count, count($model->find_related($related_model)));
-		$this->assertSame($expected_has, $model->has($related_model, $related_id));
+	}
+
+	public function provider_find_related_where()
+	{
+		return array(
+			array('Model_ORMUser', 1, 'testroles', array(), 2),
+			array('Model_ORMUser', 1, 'testroles', array(array('testroles.name', '=', 'Admin')), 1),
+		);
+	}
+
+	/**
+	 * @dataProvider provider_find_related_where
+	 *
+	 * @covers AutoModeler_ORM::find_related
+	 */
+	public function test_find_related_where($model_name, $model_id, $related_model, $where, $expected_count)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected_count, count($model->find_related($related_model, $where)));
+	}
+
+	/**
+	 * @dataProvider provider_find_parent
+	 * @expectedException Database_Exception
+	 *
+	 * @covers AutoModeler_ORM::find_related
+	 */
+	public function test_find_related_wrong($model_name, $model_id, $related_model, $expected_count)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected_count, count($model->find_related($related_model)));
+	}
+
+	public function provider_has()
+	{
+		return array(
+			array('Model_ORMUser', 1, 'testroles', 1, TRUE),
+			array('Model_ORMUser', 1, 'testroles', 2, TRUE),
+			array('Model_ORMUser', 2, 'testroles', 1, TRUE),
+			array('Model_ORMUser', 2, 'testroles', 2, FALSE),
+			array('Model_ORMUser', 3, 'testroles', 1, FALSE),
+			array('Model_ORMUser', 3, 'testroles', 2, FALSE),
+
+			array('Model_TestRole', 1, 'ormusers', 1, FALSE),
+			array('Model_TestRole', 2, 'ormusers', 1, FALSE),
+		);
+	}
+
+	/**
+	 * @dataProvider provider_has
+	 *
+	 * @covers AutoModeler_ORM::has
+	 */
+	public function test_has($model_name, $model_id, $related_model, $related_id, $expected)
+	{
+		$model = new $model_name($model_id);
+
+		$this->assertSame($expected, $model->has($related_model, $related_id));
 	}
 }
