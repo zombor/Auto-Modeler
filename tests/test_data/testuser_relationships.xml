@@ -1,7 +1,7 @@
 <dataset>
-	<ormusers id="1" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" testrole_id="1" />
-	<ormusers id="2" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" testrole_id="2" />
-	<ormusers id="3" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="10" testrole_id="1" />
+	<ormusers id="1" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="30" />
+	<ormusers id="2" username="sambar" password="barsam" email="sam@bar.com" last_login="67890" logins="10" />
+	<ormusers id="3" username="maxbar" password="maxbar" email="max@bar.com" last_login="54321" logins="20" />
 	<testroles id="1" name="Login" />
 	<testroles id="2" name="Admin" />
 	<ormusers_testroles id="1" ormuser_id="1" testrole_id="1" />

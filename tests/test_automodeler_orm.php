@@ -11,8 +11,7 @@
  * `password` CHAR( 50 ) NOT NULL ,
  * `email` VARCHAR( 50 ) NOT NULL ,
  * `last_login` INT NOT NULL ,
- * `logins` INT UNSIGNED NOT NULL,
- * `testrole_id` INT UNSIGNED NOT NULL
+ * `logins` INT UNSIGNED NOT NULL
  * ) ENGINE = INNODB ;
  * 
  * CREATE TABLE `testroles` (
@@ -53,38 +52,6 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
-	 * Provides test data for test_create_save()
-	 *
-	 * @return array
-	 */
-	public function provider_onetomany()
-	{
-		return array(
-			// $user_id, $expected_username, $expected_role_id, $expected_role_name, $expected_role_class
-			array(1, 'foobar', '1', 'Login', 'Model_TestRole'),
-		);
-	}
-
-	/**
-	 * Tests getting a one to many relationship
-	 *
-	 * @test
-	 * @dataProvider provider_onetomany
-	 * @covers AutoModeler_ORM::__get
-	 * @param string $str       String to parse
-	 * @param array  $expected  Callback and its parameters
-	 */
-	public function test_onetomany($user_id, $expected_username, $expected_role_id, $expected_role_name, $expected_role_class)
-	{
-		$user = new Model_ORMUser($user_id);
-
-		$this->assertSame($expected_username, $user->username);
-		$this->assertSame($expected_role_id, $user->testrole->id);
-		$this->assertSame($expected_role_name, $user->testrole->name);
-		$this->assertTrue($user->testrole instanceof $expected_role_class);
-	}
-
-	/**
 	 * Provides test data for test_get_manytomany()
 	 *
 	 * @return array
@@ -95,7 +62,6 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 			// $model_name, $model_id, $related_model, $expected_count, $related_id, $expected_has
 			array('Model_ORMUser', 1, 'testroles', 2, 1, TRUE),
 			array('Model_ORMUser', 2, 'testroles', 1, 3, FALSE),
-			array('Model_TestRole', 2, 'ormusers', 1, 1, FALSE),
 		);
 	}
 
