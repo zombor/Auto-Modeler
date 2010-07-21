@@ -155,17 +155,10 @@ class AutoModeler_ORM extends AutoModeler
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($key).'_id';
 
-			$query = db::select($key.'.*')
-				->from($key)
-				->order_by($order_by, $order)
-				->where($join_table.'.'.$f_key, '=', $this->_data['id'])
-				->join($join_table)
-				->on($join_table.'.'.$this_key, '=', $key.'.id')
-				->as_object('Model_'.inflector::singular(ucwords($key)));
-
+			$query = db::select($key.'.*')->from($key)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->execute($this->_db);
+			return $query->join($join_table, $join_table.'.'.$this_key, $key.'.id')->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db);
 		}
 	}
 

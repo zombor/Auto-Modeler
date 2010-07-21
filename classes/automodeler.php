@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model implements ArrayAccess, Iterator
+class AutoModeler extends Model implements ArrayAccess
 {
 	const VERSION = 3.2;
 
@@ -180,8 +180,13 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 
 		foreach ($this->_rules as $field => $rule)
 		{
-			foreach ($rule as $sub_rule)
-				$data->rule($field, $sub_rule);
+			foreach ($rule as $key => $value)
+			{
+				if (is_int($key)) // If there's no parameter
+					$data->rule($field, $value);
+				else
+					$data->rule($field, $key, $value);
+			}
 		}
 
 		foreach ($this->_callbacks as $field => $callback)
@@ -332,32 +337,6 @@ class AutoModeler extends Model implements ArrayAccess, Iterator
 	public function offsetUnset($key)
 	{
 		$this->_data[$key] = NULL;
-	}
-
-	// Iterable interface
-	public function rewind()
-	{
-		return reset($this->_data);
-	}
-
-	public function current()
-	{
-		return current($this->_data);
-	}
-
-	public function key()
-	{
-		return key($this->_data);
-	}
-
-	public function next()
-	{
-		return next($this->_data);
-	}
-
-	public function valid()
-	{
-		return key($this->_data) !== null;
 	}
 }
 
