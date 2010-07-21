@@ -225,7 +225,7 @@ class AutoModeler_ORM extends AutoModeler
 	 *
 	 * @param string $key the model name to look for
 	 *
-	 * @return Database_Result
+	 * @return integer
 	 */
 	public function remove_parent($key)
 	{
