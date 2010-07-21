@@ -6,7 +6,7 @@
  * Use this schema to use these tests:
  * 
  * CREATE TABLE `ormusers` (
- * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+ * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `username` VARCHAR( 50 ) NOT NULL ,
  * `password` CHAR( 50 ) NOT NULL ,
  * `email` VARCHAR( 50 ) NOT NULL ,
@@ -15,12 +15,12 @@
  * ) ENGINE = INNODB ;
  * 
  * CREATE TABLE `testroles` (
- * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+ * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
  * 
  * CREATE TABLE `ormusers_testroles` (
- * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+ * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `ormuser_id` INT UNSIGNED NOT NULL REFERENCES `ormusers` (`id`) ON DELETE CASCADE,
  * `testrole_id` INT UNSIGNED NOT NULL REFERENCES `testroles` (`id`) ON DELETE CASCADE
  * ) ENGINE = INNODB;

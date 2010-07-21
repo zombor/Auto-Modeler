@@ -6,7 +6,7 @@
  * Use this schema to use these tests:
  *
  * CREATE TABLE `testusers` (
- * `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+ * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `username` VARCHAR( 50 ) NOT NULL ,
  * `password` CHAR( 50 ) NOT NULL ,
  * `email` VARCHAR( 50 ) NOT NULL ,
