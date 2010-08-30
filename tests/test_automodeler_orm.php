@@ -11,10 +11,16 @@
  * `password` CHAR( 50 ) NOT NULL ,
  * `email` VARCHAR( 50 ) NOT NULL ,
  * `last_login` INT NOT NULL ,
- * `logins` INT UNSIGNED NOT NULL
+ * `logins` INT UNSIGNED NOT NULL,
+ * `foobar_id` INT NOT NULL ,
  * ) ENGINE = INNODB ;
  * 
  * CREATE TABLE `testroles` (
+ * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+ * `name` VARCHAR( 50 ) NOT NULL
+ * ) ENGINE = INNODB;
+ * 
+ * CREATE TABLE `foobars` (
  * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
@@ -109,6 +115,7 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		return array(
 			array('Model_ORMUser', 1, 'testroles', 2),
 			array('Model_ORMUser', 2, 'testroles', 1),
+			array('Model_Foobar', 1, 'ormusers', 3)
 		);
 	}
 

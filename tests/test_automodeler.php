@@ -287,43 +287,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
-	 * Provides test data for test_iterator_access()
-	 *
-	 * @return array
-	 */
-	public function provider_iterator_access()
-	{
-		return array(
-			// $id, $username, $new_username
-			array(1, array_values(AutoModeler::factory('testuser', 1)->as_array()), array_keys(AutoModeler::factory('testuser', 1)->as_array())),
-		);
-	}
-
-	/**
-	 * Tests iterator access of this object
-	 *
-	 * @test
-	 * @dataProvider provider_iterator_access
-	 * @covers AutoModeler::rewind
-	 * @covers AutoModeler::current
-	 * @covers AutoModeler::key
-	 * @covers AutoModeler::next
-	 * @covers AutoModeler::valid
-	 */
-	public function test_iterator_access($id, $expected_values, $expected_keys)
-	{
-		$user = new Model_TestUser(1);
-		$i = 0;
-
-		foreach ($user as $key => $value)
-		{
-			$this->assertSame($expected_values[$i], $value);
-			$this->assertSame($expected_keys[$i++], $key);
-		}
-	}
-
-	/**
-	 * Provides test data for test_iterator_access()
+	 * Provides test data for test_select_list()
 	 *
 	 * @return array
 	 */
