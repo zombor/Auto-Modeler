@@ -25,7 +25,7 @@ class AutoModeler_ORM extends AutoModeler
 		// See if we are requesting a foreign key
 		if (isset($this->_data[$key.'_id']))
 			// Get the row from the foreign table
-			return db::select(AutoModeler::factory($key)->fields())->from(inflector::plural($key))->where('id', '=', $this->_data[$key.'_id'])->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db)->current();
+			return db::select(AutoModeler::factory($key)->fields())->from(inflector::plural($key))->where('id', '=', $this->_data[$key.'_id'])->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db)->current();
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
 	}
@@ -113,7 +113,7 @@ class AutoModeler_ORM extends AutoModeler
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
 	
-			return $query->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db);
+			return $query->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
 		}
 		else // Get a many to many relationship
 		{
@@ -131,7 +131,7 @@ class AutoModeler_ORM extends AutoModeler
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db);
+			return $query->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
 		}
 	}
 
@@ -170,7 +170,7 @@ class AutoModeler_ORM extends AutoModeler
 			$query = db::select_array($columns)->from($key)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.inflector::singular(ucwords($key)))->execute($this->_db);
+			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
 		}
 	}
 
