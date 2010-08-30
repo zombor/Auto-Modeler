@@ -40,7 +40,7 @@ class AutoModeler extends Model implements ArrayAccess
 		if ($id != NULL)
 		{
 			// try and get a row with this ID
-			$data = db::select('*')->from($this->_table_name)->where('id', '=', $id)->execute($this->_db);
+			$data = db::select_array(array_keys($this->_data))->from($this->_table_name)->where('id', '=', $id)->execute($this->_db);
 
 			// try and assign the data
 			if (count($data) == 1 AND $data = $data->current())
@@ -137,7 +137,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public static function factory($model, $id = NULL)
 	{
-		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
+		$model = 'Model_'.ucfirst($model);
 		return new $model($id);
 	}
 
@@ -260,7 +260,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
+		return db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
 	}
 
 	/**
@@ -276,7 +276,7 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select('*')->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		$query = db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
@@ -316,6 +316,16 @@ class AutoModeler extends Model implements ArrayAccess
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Returns all the columns in this model
+	 *
+	 * @return array
+	 */
+	public function fields()
+	{
+		return array_keys($this->_data);
 	}
 
 	// Array Access Interface

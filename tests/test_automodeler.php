@@ -287,7 +287,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
-	 * Provides test data for test_iterator_access()
+	 * Provides test data for test_select_list()
 	 *
 	 * @return array
 	 */
