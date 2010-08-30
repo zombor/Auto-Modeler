@@ -328,6 +328,16 @@ class AutoModeler extends Model implements ArrayAccess
 		return array_keys($this->_data);
 	}
 
+	/**
+	 * Returns if the specified field exists in the model
+	 *
+	 * @return bool
+	 */
+	public function field_exists($field)
+	{
+		return array_key_exists($field, $this->_data);
+	}
+
 	// Array Access Interface
 	public function offsetExists($key)
 	{

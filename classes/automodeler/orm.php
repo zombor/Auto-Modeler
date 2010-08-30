@@ -106,7 +106,7 @@ class AutoModeler_ORM extends AutoModeler
 		$model = 'Model_'.inflector::singular($key);
 
 		$temp = new $model();
-		if (isset($temp->{inflector::singular($this->_table_name).'_id'})) // Look for a one to many relationship
+		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
 			$query = db::select(AutoModeler::factory(inflector::singular($key))->fields())->from($key)->order_by($order_by, $order);
 			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
@@ -147,7 +147,7 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function find_parent($key, $where = array(), $order_by = 'id', $order = 'ASC')
 	{
-		if (isset($this->{$key.'_id'})) // Look for a one to many relationship
+		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
 			$query = db::select()->from(inflector::plural($this->_table_name));
 			$query->where('id', '=', $this->_data[$key.'_id']);
