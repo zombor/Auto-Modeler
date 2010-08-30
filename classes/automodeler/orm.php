@@ -206,7 +206,7 @@ class AutoModeler_ORM extends AutoModeler
 	 * @param string $key the model name to look for
 	 * @param string $id  an id to search for
 	 *
-	 * @return Database_Result
+	 * @return integer
 	 */
 	public function remove($key, $id)
 	{
@@ -218,7 +218,7 @@ class AutoModeler_ORM extends AutoModeler
 	 *
 	 * @param string $key the model name to look for
 	 *
-	 * @return Database_Result
+	 * @return integer
 	 */
 	public function remove_all($key)
 	{
@@ -237,7 +237,7 @@ class AutoModeler_ORM extends AutoModeler
 	 *
 	 * @param string $key the model name to look for
 	 *
-	 * @return Database_Result
+	 * @return integer
 	 */
 	public function remove_parent($key)
 	{
