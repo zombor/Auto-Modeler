@@ -192,7 +192,7 @@ class AutoModeler extends Model implements ArrayAccess
 		foreach ($this->_callbacks as $field => $callback)
 			$data->callback($field, array($this, $callback));
 
-		if ($data->check())
+		if ($data->check(TRUE))
 		{
 			$this->_validation = NULL;
 			return $this->_validated = TRUE;
