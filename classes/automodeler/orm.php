@@ -108,8 +108,10 @@ class AutoModeler_ORM extends AutoModeler
 		$temp = new $model();
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$query = db::select(AutoModeler::factory(inflector::singular($key))->fields())->from($key)->order_by($order_by, $order);
+            $query = call_user_func_array(array('db', 'select'), AutoModeler::factory(inflector::singular($key))->fields());
+			$query->from($key)->order_by($order_by, $order);
 			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
+
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
 	
