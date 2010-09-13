@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = 3.3;
+	const VERSION = 3.4;
 
 	// The database table name
 	protected $_table_name = '';
@@ -192,7 +192,7 @@ class AutoModeler extends Model implements ArrayAccess
 		foreach ($this->_callbacks as $field => $callback)
 			$data->callback($field, array($this, $callback));
 
-		if ($data->check())
+		if ($data->check(TRUE))
 		{
 			$this->_validation = NULL;
 			return $this->_validated = TRUE;
