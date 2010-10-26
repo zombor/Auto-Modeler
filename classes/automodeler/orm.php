@@ -79,14 +79,15 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if (in_array($key, $this->_has_many))
 		{
+			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($key).'_id';
+			$f_key = inflector::singular($related_table).'_id';
 			foreach ($values as $value)
 				// See if this is already in the join table
-				if ( ! count(db::select('*')->from($this->_table_name.'_'.$key)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
+				if ( ! count(db::select('*')->from($this->_table_name.'_'.$related_table)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
 				{
 					// Insert
-					db::insert($this->_table_name.'_'.$key)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
+					db::insert($this->_table_name.'_'.$related_table)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
 				}
 		}
 	}
