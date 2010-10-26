@@ -161,7 +161,7 @@ class AutoModeler_ORM extends AutoModeler
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
-			$this_key = inflector::singular($key).'_id';
+			$this_key = inflector::singular($related_table).'_id';
 
 			$columns = array();
 			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
@@ -186,17 +186,18 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function has($key, $value)
 	{
-		$join_table = $this->_table_name.'_'.$key;
-		$f_key = inflector::singular($key).'_id';
+		$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+		$join_table = $this->_table_name.'_'.$related_table;
+		$f_key = inflector::singular($related_table).'_id';
 		$this_key = inflector::singular($this->_table_name).'_id';
 
 		if (in_array($key, $this->_has_many))
 		{
-			return (bool) db::select($key.'.id')->
+			return (bool) db::select($related_table.'.id')->
 			                  from(AutoModeler::factory(inflector::singular($key))->get_table_name())->
 			                  where($join_table.'.'.$this_key, '=', $this->_data['id'])->
 			                  where($join_table.'.'.$f_key, '=', $value)->
-			                  join($join_table)->on($join_table.'.'.$f_key, '=', $key.'.id')->
+			                  join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->
 			                  execute($this->_db)->count();
 		}
 		return FALSE;
@@ -212,7 +213,7 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function remove($key, $id)
 	{
-		return db::delete($this->_table_name.'_'.inflector::plural($key))->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
+		return db::delete($this->_table_name.'_'.AutoModeler::factory(inflector::singular($key))->get_table_name())->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
 	}
 
 	/**
@@ -226,11 +227,11 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if (in_array($key, $this->_has_many))
 		{
-			return db::delete($this->_table_name.'_'.$key)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
+			return db::delete($this->_table_name.'_'.AutoModeler::factory(inflector::singular($key))->get_table_name())->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
 		}
 		else if (in_array($key, $this->_belongs_to))
 		{
-			return db::delete($key.'_'.$this->_table_name)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
+			return db::delete(AutoModeler::factory(inflector::singular($key))->get_table_name().'_'.$this->_table_name)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
 		}
 	}
 
@@ -243,6 +244,6 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function remove_parent($key)
 	{
-		return db::delete($key.'_'.$this->_table_name)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
+		return db::delete(AutoModeler::factory(inflector::singular($key))->get_table_name().'_'.$this->_table_name)->where(inflector::singular($this->_table_name).'_id', '=', $this->id)->execute($this->_db);
 	}
 }
