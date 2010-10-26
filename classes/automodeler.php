@@ -128,6 +128,16 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
+	 * Gets the table name for this object
+	 *
+	 * @return string
+	 */
+	public function get_table_name()
+	{
+		return $this->_table_name;
+	}
+
+	/**
 	 * Useful for chaining
 	 *
 	 * @param string $model the model name

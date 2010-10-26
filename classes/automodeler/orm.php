@@ -16,7 +16,7 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Magic get method, can obtain one to many relationships
 	 *
-	 * @param String $key the key to __get
+	 * @param String $key the key to __get (singular)
 	 *
 	 * @return mixed
 	 */
@@ -25,7 +25,7 @@ class AutoModeler_ORM extends AutoModeler
 		// See if we are requesting a foreign key
 		if (isset($this->_data[$key.'_id']))
 			// Get the row from the foreign table
-			return db::select_array(AutoModeler::factory($key)->fields())->from(inflector::plural($key))->where('id', '=', $this->_data[$key.'_id'])->as_object('Model_'.ucwords($key))->execute($this->_db)->current();
+			return db::select_array(AutoModeler::factory($key)->fields())->from(AutoModeler::factory($key)->get_table_name())->where('id', '=', $this->_data[$key.'_id'])->as_object('Model_'.ucwords($key))->execute($this->_db)->current();
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
 	}
@@ -108,7 +108,7 @@ class AutoModeler_ORM extends AutoModeler
 		$temp = new $model();
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$query = db::select_array(AutoModeler::factory(inflector::singular($key))->fields())->from($key)->order_by($order_by, $order);
+			$query = db::select_array(AutoModeler::factory(inflector::singular($key))->fields())->from($temp->get_table_name())->order_by($order_by, $order);
 			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
@@ -127,7 +127,7 @@ class AutoModeler_ORM extends AutoModeler
 				$columns[] = array($key.'.'.$field, $field);
 			}
 
-			$query = db::select_array($columns)->from($key)->join($join_table)->on($join_table.'.'.$f_key, '=', $key.'.id')->order_by($order_by, $order);
+			$query = db::select_array($columns)->from(AutoModeler::factory(inflector::singular($key))->get_table_name())->join($join_table)->on($join_table.'.'.$f_key, '=', $key.'.id')->order_by($order_by, $order);
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
@@ -149,7 +149,7 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->from(inflector::plural($this->_table_name));
+			$query = db::select()->from($this->_table_name);
 			$query->where('id', '=', $this->_data[$key.'_id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
@@ -167,7 +167,7 @@ class AutoModeler_ORM extends AutoModeler
 				$columns[] = array($key.'.'.$field, $field);
 			}
 
-			$query = db::select_array($columns)->from($key)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			$query = db::select_array($columns)->from(AutoModeler::factory(inflector::singular($key))->get_table_name())->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
 			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
@@ -177,7 +177,7 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Tests if a many to many relationship exists
 	 *
-	 * @param string $key   the model name to look for
+	 * @param string $key   the model name to look for (plural)
 	 * @param string $value an id to search for
 	 *
 	 * @return bool
@@ -191,7 +191,7 @@ class AutoModeler_ORM extends AutoModeler
 		if (in_array($key, $this->_has_many))
 		{
 			return (bool) db::select($key.'.id')->
-			                  from($key)->
+			                  from(AutoModeler::factory(inflector::singular($key))->get_table_name())->
 			                  where($join_table.'.'.$this_key, '=', $this->_data['id'])->
 			                  where($join_table.'.'.$f_key, '=', $value)->
 			                  join($join_table)->on($join_table.'.'.$f_key, '=', $key.'.id')->
