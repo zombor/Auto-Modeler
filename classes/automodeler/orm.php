@@ -117,17 +117,18 @@ class AutoModeler_ORM extends AutoModeler
 		}
 		else // Get a many to many relationship
 		{
-			$join_table = $this->_table_name.'_'.$key;
+			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+			$join_table = $this->_table_name.'_'.$related_table;
 			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($key).'_id';
+			$f_key = inflector::singular($related_table).'_id';
 
 			$columns = array();
 			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
 			{
-				$columns[] = array($key.'.'.$field, $field);
+				$columns[] = array($related_table.'.'.$field, $field);
 			}
 
-			$query = db::select_array($columns)->from(AutoModeler::factory(inflector::singular($key))->get_table_name())->join($join_table)->on($join_table.'.'.$f_key, '=', $key.'.id')->order_by($order_by, $order);
+			$query = db::select_array($columns)->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->order_by($order_by, $order);
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
@@ -157,17 +158,18 @@ class AutoModeler_ORM extends AutoModeler
 		}
 		else
 		{
-			$join_table = $key.'_'.$this->_table_name;
+			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($key).'_id';
 
 			$columns = array();
 			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
 			{
-				$columns[] = array($key.'.'.$field, $field);
+				$columns[] = array($related_table.'.'.$field, $field);
 			}
 
-			$query = db::select_array($columns)->from(AutoModeler::factory(inflector::singular($key))->get_table_name())->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			$query = db::select_array($columns)->from($related_table)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
 			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
