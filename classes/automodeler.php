@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = 3.4;
+	const VERSION = 3.5;
 
 	// The database table name
 	protected $_table_name = '';
@@ -125,6 +125,16 @@ class AutoModeler extends Model implements ArrayAccess
 	public function as_array()
 	{
 		return $this->_data;
+	}
+
+	/**
+	 * Gets the table name for this object
+	 *
+	 * @return string
+	 */
+	public function get_table_name()
+	{
+		return $this->_table_name;
 	}
 
 	/**
@@ -260,7 +270,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)))->execute($this->_db);
+		return db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object(get_class($this))->execute($this->_db);
 	}
 
 	/**
@@ -276,7 +286,7 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object('Model_'.inflector::singular(ucwords($this->_table_name)));
+		$query = db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object(get_class($this));
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
