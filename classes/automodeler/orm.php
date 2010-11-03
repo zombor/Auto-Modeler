@@ -42,25 +42,27 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if (in_array($key, $this->_has_many))
 		{
+			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($key).'_id';
+			$f_key = inflector::singular($related_table).'_id';
 
 			// See if this is already in the join table
-			if ( ! count(db::select('*')->from($this->_table_name.'_'.$key)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
+			if ( ! count(db::select('*')->from($this->_table_name.'_'.$related_table)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
 			{
 				// Insert
-				db::insert($this->_table_name.'_'.$key)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
+				db::insert($this->_table_name.'_'.$related_table)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
 			}
 		}
 		else if (in_array($key, $this->_belongs_to))
 		{
+			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($key).'_id';
+			$f_key = inflector::singular($related_table).'_id';
 			// See if this is already in the join table
-			if ( ! count(db::select('*')->from($key.'_'.$this->_table_name)->where($this_key, '=', $value)->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
+			if ( ! count(db::select('*')->from($related_table.'_'.$this->_table_name)->where($this_key, '=', $value)->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
 			{
 				// Insert
-				db::insert($key.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
+				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
 			}
 		}
 		else
