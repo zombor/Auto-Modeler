@@ -35,13 +35,13 @@ class Auth_AutoModeler_ORM extends Auth {
 					// Check each role
 					foreach ($role as $_role)
 					{
-						if ( ! is_object($_role))
+						if ( ! is_numeric($_role))
 						{
-							$_role = AutoModeler_ORM::factory('role', array('name' => $_role));
+							$_role = AutoModeler_ORM::factory('role')->fetch_where(array(array('name', '=', $_role)))->get('id');
 						}
 
 						// If the user doesn't have the role
-						if ( ! $user->has('role', $_role))
+						if ( ! $user->has('roles', $_role))
 						{
 							// Set the status false and get outta here
 							$status = FALSE;
@@ -52,14 +52,14 @@ class Auth_AutoModeler_ORM extends Auth {
 				// Single role to check
 				else
 				{
-					if ( ! is_object($role))
+					if ( ! is_numeric($role))
 					{
 						// Load the role
-						$role = AutoModeler_ORM::factory('role', array('name' => $role));
+						$role = AutoModeler_ORM::factory('role')->fetch_where(array(array('name', '=', $role)))->get('id');
 					}
 
 					// Check that the user has the given role
-					$status = $user->has('role', $role);
+					$status = $user->has('roles', $role);
 				}
 			}
 		}
