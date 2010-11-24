@@ -374,7 +374,7 @@ class AutoModeler_Exception extends Kohana_Exception
 {
 	public $errors;
 
-	public function __construct($title, $message, $errors)
+	public function __construct($title, array $message = NULL, $errors = '')
 	{
 		parent::__construct($title, $message);
 		$this->errors = $errors;
