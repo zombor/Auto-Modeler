@@ -55,13 +55,13 @@ class AutoModeler extends Model implements ArrayAccess
 	{
 		if ($query == NULL)
 		{
-			$query = db::select();
+			$query = db::select_array(array_keys($this->_data));
 		}
 
 		if ($limit)
 			$query->limit($limit);
 
-		$query->select_array(array_keys($this->_data))->from($this->_table_name)->as_object(get_class($this));
+		$query->from($this->_table_name)->as_object(get_class($this));
 
 		$data = $query->execute($this->_db);
 
@@ -363,7 +363,10 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fields()
 	{
-		return array_keys($this->_data);
+		foreach ($this->_data as $key => $value)
+			$fields[] = $this->_table_name.'.'.$key;
+
+		return $fields;
 	}
 
 	/**
