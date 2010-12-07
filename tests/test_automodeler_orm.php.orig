@@ -259,25 +259,7 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->has($related_model, $related_id));
 	}
 
-	/**
-	 * Tests with() support
-	 *
-	 * @return null
-	 */
-	public function test_with()
-	{
-		$q_before = $this->getQueries();
-
-		$user = new Model_ORMUser();
-		$user->with('foobar')->load(db::select()->where('ormusers.id', '=', 1));
-
-		// There should only be one query
-		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
-		$this->assertTrue($user instanceof Model_ORMUser);
-		$this->assertTrue($user->foobar instanceof Model_Foobar);
-		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
-	}
-
+<<<<<<< HEAD
 	public function provider_remove()
 	{
 		return array(
@@ -349,5 +331,24 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 
 		$this->assertSame($expected, $model->remove_parent($related_model));
 		$this->assertSame(0, count($model->find_parent($related_model)));
+=======
+	/**
+	 * Tests with() support
+	 *
+	 * @return null
+	 */
+	public function test_with()
+	{
+		$q_before = $this->getQueries();
+
+		$user = new Model_ORMUser();
+		$user->with('foobar')->load(db::select()->where('ormusers.id', '=', 1));
+
+		// There should only be one query
+		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
+		$this->assertTrue($user instanceof Model_ORMUser);
+		$this->assertTrue($user->foobar instanceof Model_Foobar);
+		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
+>>>>>>> release/3.6
 	}
 }
