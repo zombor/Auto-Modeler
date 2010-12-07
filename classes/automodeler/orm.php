@@ -13,6 +13,11 @@ class AutoModeler_ORM extends AutoModeler
 	protected $_has_many = array();
 	protected $_belongs_to = array();
 
+	protected $_load_with = NULL;
+
+	// Model data to lazy load
+	protected $_lazy = array();
+
 	/**
 	 * Magic get method, can obtain one to many relationships
 	 *
@@ -24,8 +29,17 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		// See if we are requesting a foreign key
 		if (isset($this->_data[$key.'_id']))
+		{
+			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
+			{
+				$model = AutoModeler::factory($key);
+				$model->_data = $this->_lazy[$key];
+				return $model;
+			}
+
 			// Get the row from the foreign table
 			return AutoModeler::factory($key, $this->_data[$key.'_id']);
+		}
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
 	}
@@ -66,7 +80,80 @@ class AutoModeler_ORM extends AutoModeler
 			}
 		}
 		else
-			parent::__set($key, $value);
+		{
+			// This is a with() assignment
+			if (strpos($key, ':'))
+			{
+				list($table, $column) = explode(':', $key);
+
+				if ($table == $this->_table_name)
+				{
+					parent::__set($column, $value);
+				}
+				elseif ($column)
+				{
+					$this->_lazy[inflector::singular($table)][$column] = $value;
+				}
+			}
+			else
+			{
+				parent::__set($key, $value);
+			}
+		}
+	}
+
+	/**
+	 * Gets clone data for load()
+	 *
+	 * @return array
+	 */
+	protected function get_clone_data()
+	{
+		return array_merge(
+			parent::get_clone_data(),
+			array(
+				'_lazy',
+			)
+		);
+	}
+
+	/**
+	 * Loads a model with a different one
+	 *
+	 * @return $this
+	 */
+	public function with($model)
+	{
+		$this->_load_with = $model;
+		return $this;
+	}
+
+	/**
+	 * Overload load() to use with()
+	 *
+	 * @return null
+	 */
+	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
+	{
+		if ($query == NULL)
+		{
+			$query = db::select();
+		}
+
+		if ($this->_load_with !== NULL)
+		{
+			$fields = array();
+			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($this->_load_with)->fields()) as $field)
+			{
+				$fields[] = array($field, str_replace('.', ':', $field));
+			}
+
+			$query->select_array($fields);
+			$join_table = inflector::plural($this->_load_with);
+			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$this->_load_with.'_id');
+		}
+
+		return parent::load($query, $limit);
 	}
 
 	/**
@@ -125,11 +212,7 @@ class AutoModeler_ORM extends AutoModeler
 			$this_key = inflector::singular($this->_table_name).'_id';
 			$f_key = inflector::singular($related_table).'_id';
 
-			$columns = array();
-			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
-			{
-				$columns[] = array($related_table.'.'.$field, $field);
-			}
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
 			$query = db::select_array($columns)->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->order_by($order_by, $order);
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
@@ -166,11 +249,7 @@ class AutoModeler_ORM extends AutoModeler
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
 
-			$columns = array();
-			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
-			{
-				$columns[] = array($related_table.'.'.$field, $field);
-			}
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
 			$query = db::select_array($columns)->from($related_table)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)

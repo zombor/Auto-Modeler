@@ -70,10 +70,15 @@ class AutoModeler extends Model implements ArrayAccess
 			return $data;
 		}
 
-		if (count($data))
+		if (count($data) AND $data = $data->current())
 		{
-			$this->_data = $data->current()->as_array();
+			foreach ($this->get_clone_data() as $field)
+			{
+				$this->$field = $data->$field;
+			}
 		}
+
+		return $this;
 	}
 
 	/**
@@ -150,6 +155,18 @@ class AutoModeler extends Model implements ArrayAccess
 	public function as_array()
 	{
 		return $this->_data;
+	}
+
+	/**
+	 * Gets clone data for load()
+	 *
+	 * @return array
+	 */
+	protected function get_clone_data()
+	{
+		return array(
+			'_data',
+		);
 	}
 
 	/**
