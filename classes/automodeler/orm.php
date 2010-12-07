@@ -13,6 +13,11 @@ class AutoModeler_ORM extends AutoModeler
 	protected $_has_many = array();
 	protected $_belongs_to = array();
 
+	protected $_load_with = NULL;
+
+	// Model data to lazy load
+	protected $_lazy = array();
+
 	/**
 	 * Magic get method, can obtain one to many relationships
 	 *
@@ -24,8 +29,17 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		// See if we are requesting a foreign key
 		if (isset($this->_data[$key.'_id']))
+		{
+			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
+			{
+				$model = AutoModeler::factory($key);
+				$model->_data = $this->_lazy[$key];
+				return $model;
+			}
+
 			// Get the row from the foreign table
-			return db::select_array(AutoModeler::factory($key)->fields())->from(AutoModeler::factory($key)->get_table_name())->where('id', '=', $this->_data[$key.'_id'])->as_object('Model_'.ucwords($key))->execute($this->_db)->current();
+			return AutoModeler::factory($key, $this->_data[$key.'_id']);
+		}
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
 	}
@@ -66,7 +80,80 @@ class AutoModeler_ORM extends AutoModeler
 			}
 		}
 		else
-			parent::__set($key, $value);
+		{
+			// This is a with() assignment
+			if (strpos($key, ':'))
+			{
+				list($table, $column) = explode(':', $key);
+
+				if ($table == $this->_table_name)
+				{
+					parent::__set($column, $value);
+				}
+				elseif ($column)
+				{
+					$this->_lazy[inflector::singular($table)][$column] = $value;
+				}
+			}
+			else
+			{
+				parent::__set($key, $value);
+			}
+		}
+	}
+
+	/**
+	 * Gets clone data for load()
+	 *
+	 * @return array
+	 */
+	protected function get_clone_data()
+	{
+		return array_merge(
+			parent::get_clone_data(),
+			array(
+				'_lazy',
+			)
+		);
+	}
+
+	/**
+	 * Loads a model with a different one
+	 *
+	 * @return $this
+	 */
+	public function with($model)
+	{
+		$this->_load_with = $model;
+		return $this;
+	}
+
+	/**
+	 * Overload load() to use with()
+	 *
+	 * @return null
+	 */
+	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
+	{
+		if ($query == NULL)
+		{
+			$query = db::select();
+		}
+
+		if ($this->_load_with !== NULL)
+		{
+			$fields = array();
+			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($this->_load_with)->fields()) as $field)
+			{
+				$fields[] = array($field, str_replace('.', ':', $field));
+			}
+
+			$query->select_array($fields);
+			$join_table = inflector::plural($this->_load_with);
+			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$this->_load_with.'_id');
+		}
+
+		return parent::load($query, $limit);
 	}
 
 	/**
@@ -111,25 +198,21 @@ class AutoModeler_ORM extends AutoModeler
 		$temp = new $model();
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$query = db::select_array(AutoModeler::factory(inflector::singular($key))->fields())->from($temp->get_table_name())->order_by($order_by, $order);
+			$query = db::select()->order_by($order_by, $order);
 			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-	
-			return $query->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
+
+			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
 		}
-		else // Get a many to many relationship
+		else // Get a many to many relationship. TODO: convert to load() if possible
 		{
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$join_table = $this->_table_name.'_'.$related_table;
 			$this_key = inflector::singular($this->_table_name).'_id';
 			$f_key = inflector::singular($related_table).'_id';
 
-			$columns = array();
-			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
-			{
-				$columns[] = array($related_table.'.'.$field, $field);
-			}
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
 			$query = db::select_array($columns)->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->order_by($order_by, $order);
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
@@ -153,24 +236,20 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->from($this->_table_name);
-			$query->where('id', '=', $this->_data[$key.'_id']);
+			$query = db::select()->where('id', '=', $this->_data[$key.'_id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->as_object('Model_'.ucwords($this->_table_name))->execute($this->_db);
+
+			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
 		}
-		else
+		else // Get a many to many relationship. TODO: convert to load() if possible
 		{
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
 
-			$columns = array();
-			foreach (AutoModeler::factory(inflector::singular($key))->fields() as $field)
-			{
-				$columns[] = array($related_table.'.'.$field, $field);
-			}
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
 			$query = db::select_array($columns)->from($related_table)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			foreach ($where as $sub_where)

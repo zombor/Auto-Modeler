@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = 3.5;
+	const VERSION = 3.6;
 
 	// The database table name
 	protected $_table_name = '';
@@ -37,18 +37,48 @@ class AutoModeler extends Model implements ArrayAccess
 	{
 		parent::__construct();
 
-		if ($id != NULL)
+		if ($id !== NULL)
 		{
-			// try and get a row with this ID
-			$data = db::select_array(array_keys($this->_data))->from($this->_table_name)->where('id', '=', $id)->execute($this->_db);
+			$this->load(db::select()->where('id', '=', $id));
+		}
+	}
 
-			// try and assign the data
-			if (count($data) == 1 AND $data = $data->current())
+	/**
+	 * Loads a single data row into this model
+	 * 
+	 * @param Database_Query_Builder_Select $query an optional query builder object to load with
+	 * @param integer                       $limit a number greater than one will return a data set
+	 *
+	 * @return null
+	 */
+	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
+	{
+		if ($query == NULL)
+		{
+			$query = db::select_array(array_keys($this->_data));
+		}
+
+		if ($limit)
+			$query->limit($limit);
+
+		$query->from($this->_table_name)->as_object(get_class($this));
+
+		$data = $query->execute($this->_db);
+
+		if ( ! $limit)
+		{
+			return $data;
+		}
+
+		if (count($data) AND $data = $data->current())
+		{
+			foreach ($this->get_clone_data() as $field)
 			{
-				foreach ($data as $key => $value)
-					$this->_data[$key] = $value;
+				$this->$field = $data->$field;
 			}
 		}
+
+		return $this;
 	}
 
 	/**
@@ -125,6 +155,18 @@ class AutoModeler extends Model implements ArrayAccess
 	public function as_array()
 	{
 		return $this->_data;
+	}
+
+	/**
+	 * Gets clone data for load()
+	 *
+	 * @return array
+	 */
+	protected function get_clone_data()
+	{
+		return array(
+			'_data',
+		);
 	}
 
 	/**
@@ -270,11 +312,14 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object(get_class($this))->execute($this->_db);
+		return $this->load(db::select()->order_by($order_by, $direction), NULL);
 	}
 
 	/**
 	 * Same as fetch_all except you can pass a where clause
+	 * 
+	 * DEPRICATED AS OF 3.6
+	 * WILL BE REMOVED IN 3.7
 	 *
 	 * @param array  $where     the where clause
 	 * @param string $order_by  a column to order on
@@ -286,12 +331,12 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select_array(array_keys($this->_data))->from($this->_table_name)->order_by($order_by, $direction)->as_object(get_class($this));
+		$query = db::select()->order_by($order_by, $direction)->as_object(get_class($this));
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
 
-		return $query->execute($this->_db);
+		return $this->load($query, NULL);
 	}
 
 	/**
@@ -335,7 +380,10 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fields()
 	{
-		return array_keys($this->_data);
+		foreach ($this->_data as $key => $value)
+			$fields[] = $this->_table_name.'.'.$key;
+
+		return $fields;
 	}
 
 	/**
@@ -374,7 +422,7 @@ class AutoModeler_Exception extends Kohana_Exception
 {
 	public $errors;
 
-	public function __construct($title, $message, $errors)
+	public function __construct($title, array $message = NULL, $errors = '')
 	{
 		parent::__construct($title, $message);
 		$this->errors = $errors;

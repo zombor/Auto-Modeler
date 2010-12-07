@@ -57,6 +57,74 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		return $this->createFlatXMLDataSet(Kohana::find_file('tests', 'test_data/testuser_relationships', 'xml'));
 	}
 
+	/**
+	 * Get the currently logged set of queries from the database profiling.
+	 *
+	 * @param string $database The database the queries will be logged under.
+	 * @return array Map of queries from the Profiler class
+	 * @author Marcus Cobden
+	 */
+	public function getQueries($database = 'default')
+	{
+		$database = "database ($database)";
+		
+		$groups = Profiler::groups();
+		if (! array_key_exists($database, $groups))
+			return array();
+
+		return $groups[$database];
+	}
+	
+	/**
+	 * Find the difference between two different query profiles
+	 *
+	 * @param array $before The queries before
+	 * @param array $after  The queries after
+	 * @return array(int, array) Total number of new queries and a map of query => increase.
+	 * @author Marcus Cobden
+	 */
+	public function queryDiff(array $before, array $after)
+	{
+		$added = 0;
+		$diff = array();
+
+		foreach ($after as $query => $ids) {
+			if (! array_key_exists($query, $before))
+			{
+				$cmp = count($ids);
+				$added += $cmp;
+				$diff[$query] = $cmp;
+			}
+			else
+			{
+				$cmp = count($ids) - count($before[$query]);
+				if ($cmp == 0)
+					continue;
+					
+				$added += $cmp;
+				$diff[$query] = $cmp;
+			}
+		}
+			
+		return array($added, $diff);
+	}
+	
+	/**
+	 * Assert that the number of queries should have increased by a certain amount.
+	 *
+	 * @param int   $increase Expected increase in number of queries
+	 * @param array $before   Queries before the tests
+	 * @param array $after    Queries after the tests
+	 * @return void
+	 * @author Marcus Cobden
+	 */
+	public function assertQueryCountIncrease($increase, array $before, array $after)
+	{
+		list($added, $new_queries) = $this->queryDiff($before, $after);
+		
+		$this->assertEquals($increase, $added, "Expected to have $increase more queries, actual increase was $added.");
+	}
+
 	public function provider_find_parent()
 	{
 		return array(
@@ -191,6 +259,25 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->has($related_model, $related_id));
 	}
 
+	/**
+	 * Tests with() support
+	 *
+	 * @return null
+	 */
+	public function test_with()
+	{
+		$q_before = $this->getQueries();
+
+		$user = new Model_ORMUser();
+		$user->with('foobar')->load(db::select()->where('ormusers.id', '=', 1));
+
+		// There should only be one query
+		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
+		$this->assertTrue($user instanceof Model_ORMUser);
+		$this->assertTrue($user->foobar instanceof Model_Foobar);
+		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
+	}
+
 	public function provider_remove()
 	{
 		return array(
@@ -263,4 +350,3 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->remove_parent($related_model));
 		$this->assertSame(0, count($model->find_parent($related_model)));
 	}
-}
