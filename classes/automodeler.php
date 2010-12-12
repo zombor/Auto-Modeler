@@ -39,7 +39,7 @@ class AutoModeler extends Model implements ArrayAccess
 
 		if ($id !== NULL)
 		{
-			$this->load(db::select()->where('id', '=', $id));
+			$this->load(db::select_array(array_keys($this->_data))->where('id', '=', $id));
 		}
 	}
 
