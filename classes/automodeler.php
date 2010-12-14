@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = 3.6;
+	const VERSION = '3.6.3';
 
 	// The database table name
 	protected $_table_name = '';
@@ -39,7 +39,7 @@ class AutoModeler extends Model implements ArrayAccess
 
 		if ($id !== NULL)
 		{
-			$this->load(db::select()->where('id', '=', $id));
+			$this->load(db::select_array(array_keys($this->_data))->where('id', '=', $id));
 		}
 	}
 
@@ -312,7 +312,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return $this->load(db::select()->order_by($order_by, $direction), NULL);
+		return $this->load(db::select_array(array_keys($this->_data))->order_by($order_by, $direction), NULL);
 	}
 
 	/**
@@ -331,7 +331,7 @@ class AutoModeler extends Model implements ArrayAccess
 	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		$query = db::select()->order_by($order_by, $direction)->as_object(get_class($this));
+		$query = db::select_array(array_keys($this->_data))->order_by($order_by, $direction)->as_object(get_class($this));
 
 		foreach ($wheres as $where)
 			$query->$function($where[0], $where[1], $where[2]);
