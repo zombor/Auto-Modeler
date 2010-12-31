@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model implements ArrayAccess
+class AutoModeler extends Model_Database implements ArrayAccess
 {
 	const VERSION = 3.3;
 
@@ -35,7 +35,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function __construct($id = NULL)
 	{
-		parent::__construct();
+		parent::__construct($this->_db);
 
 		if ($id != NULL)
 		{
@@ -176,7 +176,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function is_valid($validation = NULL)
 	{
-		$data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validate::factory($this->_data);
+		$data = $validation instanceof Validation ? $validation->copy($validation->as_array()+$this->_data) : Validation::factory($this->_data);
 
 		foreach ($this->_rules as $field => $rule)
 		{
