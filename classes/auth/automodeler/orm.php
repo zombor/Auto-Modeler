@@ -179,18 +179,14 @@ class Auth_AutoModeler_ORM extends Auth {
 	 *
 	 * @return  mixed
 	 */
-	public function get_user($default = FALSE)
+	public function get_user()
 	{
-		$user = parent::get_user($default);
+		$user = parent::get_user();
 
-		if ( ! $user->id)
+		if ($user === FALSE)
 		{
 			// check for "remembered" login
-			$auto_user = $this->auto_login();
-			if ($auto_user)
-			{
-				return $auto_user;
-			}
+			$user = $this->auto_login();
 		}
 
 		return $user;
