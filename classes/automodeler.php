@@ -28,6 +28,20 @@ class AutoModeler extends Model implements ArrayAccess
 	protected $_lang = 'form_errors';
 
 	/**
+	 * Available states:
+	 *  - new
+	 *  - loading
+	 *  - loaded
+	 *  - deleted
+	 */
+	protected $_state = AutoModeler::STATE_NEW;
+
+	const STATE_NEW = 'new';
+	const STATE_LOADING = 'loading';
+	const STATE_LOADED = 'loaded';
+	const STATE_DELETED = 'deleted';
+
+	/**
 	 * Standard constructor, accepts an `id` column to look for
 	 *
 	 * @param string $id  an id to search for
@@ -53,6 +67,8 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
+		$this->_state = AutoModeler::STATE_LOADING;
+
 		if ($query == NULL)
 		{
 			$query = db::select_array(array_keys($this->_data));
@@ -74,9 +90,18 @@ class AutoModeler extends Model implements ArrayAccess
 		{
 			foreach ($this->get_clone_data() as $field)
 			{
-				$this->$field = $data->$field;
+				if ($this->_state == AutoModeler::STATE_NEW)
+				{
+					$this->_data[$field] = $data->$field;
+				}
+				else
+				{
+					$this->$field = $data->$field;
+				}
 			}
 		}
+
+		$this->_state = AutoModeler::STATE_LOADED;
 
 		return $this;
 	}
@@ -145,6 +170,28 @@ class AutoModeler extends Model implements ArrayAccess
 	public function __isset($name)
 	{
 		return isset($this->_data[$name]);
+	}
+
+	/**
+	 * Gets/sets the object state
+	 *
+	 * @return string/$this when getting/setting
+	 */
+	public function state($state = NULL)
+	{
+		if ($state)
+		{
+			if ( ! in_array($state, array(AutoModeler::STATE_NEW, AutoModeler::STATE_LOADING, AutoModeler::STATE_LOADED, AutoModeler::STATE_DELETED)))
+			{
+				throw new AutoModeler_Exception('Invalid state');
+			}
+
+			$this->_state = $state;
+
+			return $this;
+		}
+
+		return $this->_state;
 	}
 
 	/**
@@ -270,7 +317,7 @@ class AutoModeler extends Model implements ArrayAccess
 
 		if ($status === TRUE)
 		{
-			if ($this->_data['id']) // Do an update
+			if ($this->state() == AutoModeler::STATE_LOADED) // Do an update
 			{
 				return count(db::update($this->_table_name)->set(array_diff_assoc($this->_data, array('id' => $this->_data['id'])))->where('id', '=', $this->_data['id'])->execute($this->_db));
 			}
@@ -280,6 +327,9 @@ class AutoModeler extends Model implements ArrayAccess
 				$id = db::insert($this->_table_name)
 						->columns($columns)
 						->values($this->_data)->execute($this->_db);
+
+				$this->state(AutoModeler::STATE_LOADED);
+
 				return ($this->_data['id'] = $id[0]);
 			}
 		}
@@ -294,12 +344,14 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function delete()
 	{
-		if ($this->_data['id'])
+		if (AutoModeler::STATE_LOADED)
 		{
+			$this->_state = AutoModeler::STATE_DELETED;
+
 			return db::delete($this->_table_name)->where('id', '=', $this->_data['id'])->execute($this->_db);
 		}
 
-		throw new AutoModeler_Exception('Cannot delete a non-saved model '.get_class($this).'!', array(), array());
+		throw new AutoModeler_Exception('Cannot delete a non-loaded model '.get_class($this).'!', array(), array());
 	}
 
 	/**
