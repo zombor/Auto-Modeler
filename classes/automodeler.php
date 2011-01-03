@@ -355,59 +355,38 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * fetches all rows in the database for this model
-	 *
-	 * @param string $order_by  a column to order on
-	 * @param string $direction the direction to sort
-	 *
-	 * @return Database_Result
-	 */
-	public function fetch_all($order_by = 'id', $direction = 'ASC')
-	{
-		return $this->load(db::select_array(array_keys($this->_data))->order_by($order_by, $direction), NULL);
-	}
-
-	/**
-	 * Same as fetch_all except you can pass a where clause
-	 * 
-	 * DEPRICATED AS OF 3.6
-	 * WILL BE REMOVED IN 3.7
-	 *
-	 * @param array  $where     the where clause
-	 * @param string $order_by  a column to order on
-	 * @param string $direction the direction to sort
-	 * @param string $type      the type of where to run
-	 *
-	 * @return Database_Result
-	 */
-	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
-	{
-		$function = $type.'_where';
-		$query = db::select_array(array_keys($this->_data))->order_by($order_by, $direction)->as_object(get_class($this));
-
-		foreach ($wheres as $where)
-			$query->$function($where[0], $where[1], $where[2]);
-
-		return $this->load($query, NULL);
-	}
-
-	/**
 	 * Same as fetch_where except you get a nice array back for form::dropdown()
 	 *
 	 * @param array  $key       the key to use for the array
 	 * @param array  $where     the value to use for the display
-	 * @param string $order_by  a column to order on
 	 * @param array  $where     the where clause
 	 *
 	 * @return Database_Result
 	 */
-	public function select_list($key, $display, $order_by = 'id', $where = array())
+	public function select_list($key, $display, Database_Query_Builder_Select $query = NULL)
 	{
 		$rows = array();
 
-		$query = empty($where) ? $this->fetch_all($order_by) : $this->fetch_where($where, $order_by);
+		$array_display = FALSE;
+		$select_array = array($key);
+		if (is_array($display))
+		{
+			$array_display = TRUE;
+			$select_array = array_merge($select_array, $display);
+		}
+		else
+		{
+			$select_array[] = $display;
+		}
 
-		$array_display = is_array($display);
+		if ($query) // Fetch selected rows
+		{
+			$query = $this->load($query->select_array($select_array), NULL);
+		}
+		else // Fetch all rows
+		{
+			$query = $this->load(db::select_array($select_array), NULL);
+		}
 
 		foreach ($query as $row)
 		{
@@ -419,7 +398,9 @@ class AutoModeler extends Model implements ArrayAccess
 				$rows[$row->$key] = implode(' - ', $display_str);
 			}
 			else
+			{
 				$rows[$row->$key] = $row->$display;
+			}
 		}
 
 		return $rows;

@@ -299,8 +299,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_select_list()
 	{
 		return array(
-			array('id', 'username', array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
-			array('id', array('username', 'last_login'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
+			array('id', 'username', db::select('*'), array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
+			array('id', array('username', 'last_login'), db::select('*')->where('username', '=', 'foobar'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
 		);
 	}
 
@@ -311,44 +311,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	 * @dataProvider provider_select_list
 	 * @covers AutoModeler::select_list
 	 */
-	public function test_select_list($key, $display, $expected)
+	public function test_select_list($key, $display, $query, $expected)
 	{
-		$this->assertSame($expected, AutoModeler::factory('testuser')->select_list($key, $display));
-	}
-
-	/**
-	 * Tests fetching all data in the database
-	 *
-	 * @test
-	 * @covers AutoModeler::fetch_all
-	 */
-	public function test_fetch_all()
-	{
-		$users = AutoModeler::factory('testuser')->fetch_all();
-		$this->assertSame(3, count($users));
-		$this->assertTrue($users->current() instanceof Model_TestUser);
-
-		$users = AutoModeler::factory('testuser')->fetch_all('id', 'ASC');
-		$this->assertSame('1', $users->current()->id);
-
-		$users = AutoModeler::factory('testuser')->fetch_all('id', 'DESC');
-		$this->assertSame('3', $users->current()->id);
-	}
-
-	/**
-	 * Tests fetching where data in the database
-	 *
-	 * @test
-	 * @covers AutoModeler::fetch_where
-	 */
-	public function test_fetch_where()
-	{
-		$users = AutoModeler::factory('testuser')->fetch_where(array(array('id', '=', '1')));
-		$this->assertSame(1, count($users));
-		$this->assertTrue($users->current() instanceof Model_TestUser);
-		$this->assertSame('1', $users->current()->id);
-
-		$users = AutoModeler::factory('testuser')->fetch_where(array(array('username', '=', 'foobar')));
-		$this->assertSame(3, count($users));
+		$this->assertSame($expected, AutoModeler::factory('testuser')->select_list($key, $display, $query));
 	}
 }
