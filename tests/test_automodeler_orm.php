@@ -274,6 +274,7 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		// There should only be one query
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
 		$this->assertTrue($user instanceof Model_ORMUser);
+
 		$this->assertTrue($user->foobar instanceof Model_Foobar);
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
 	}

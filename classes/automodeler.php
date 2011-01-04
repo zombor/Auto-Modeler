@@ -77,7 +77,12 @@ class AutoModeler extends Model implements ArrayAccess
 		if ($limit)
 			$query->limit($limit);
 
-		$query->from($this->_table_name)->as_object(get_class($this));
+		$query->from($this->_table_name);
+
+		if ( ! $limit)
+		{
+			$query->as_object(get_class($this));
+		}
 
 		$data = $query->execute($this->_db);
 
@@ -88,22 +93,38 @@ class AutoModeler extends Model implements ArrayAccess
 
 		if (count($data) AND $data = $data->current())
 		{
-			foreach ($this->get_clone_data() as $field)
-			{
-				if ($this->_state == AutoModeler::STATE_NEW)
-				{
-					$this->_data[$field] = $data->$field;
-				}
-				else
-				{
-					$this->$field = $data->$field;
-				}
-			}
+			$this->process_load($data);
 		}
 
 		$this->_state = AutoModeler::STATE_LOADED;
 
 		return $this;
+	}
+
+	/**
+	 * Processes a load() from a result
+	 *
+	 * @return null
+	 */
+	protected function process_load($data)
+	{
+		$parsed_data = array();
+		foreach ($data as $key => $value)
+		{
+			if (strpos($key, ':'))
+			{
+				list($table, $field) = explode(':', $key);
+				if ($table == $this->_table_name)
+				{
+					$parsed_data[$field] = $value;
+				}
+			}
+			else
+			{
+				$parsed_data[$key] = $value;
+			}
+		}
+		$this->_data = $parsed_data;
 	}
 
 	/**

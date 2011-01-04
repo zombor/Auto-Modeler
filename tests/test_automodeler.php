@@ -83,7 +83,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 			array(
 				'id'         => $user->id,
 				'username'   => $username,
-				'password'   => $password,
+				'password'   => sha1($password),
 				'email'      => $email,
 				'last_login' => $last_login,
 				'logins'     => $logins,
@@ -149,6 +149,19 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$deletions = $user->delete();
 		$this->assertSame(1, $deletions);
 		$this->assertTrue($user->state() == AutoModeler::STATE_DELETED);
+	}
+
+	/**
+	 * Tests that load() does not use __set()
+	 *
+	 * @return null
+	 */
+	public function test_load_does_not_use_set()
+	{
+		$user = new Model_TestUser;
+		$user->load(db::select()->where('id', '=', '1'));
+
+		$this->assertSame('60518c1c11dc0452be71a7118a43ab68e3451b82', $user->password);
 	}
 
 	/**
@@ -261,7 +274,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$user = new Model_TestUser(1);
 
 		$serialized = serialize($user);
-		$this->assertSame('O:14:"Model_TestUser":8:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:6:"barfoo";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";s:9:"'.$protected.'_state";s:6:"loaded";}', $serialized);
+		$this->assertSame('O:14:"Model_TestUser":8:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:40:"60518c1c11dc0452be71a7118a43ab68e3451b82";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";s:9:"'.$protected.'_state";s:6:"loaded";}', $serialized);
 
 		$unserialized = unserialize($serialized);
 		$this->assertSame('foobar', $unserialized->username);

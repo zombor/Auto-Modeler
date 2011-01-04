@@ -79,27 +79,36 @@ class AutoModeler_ORM extends AutoModeler
 				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
 			}
 		}
-		else
+	}
+
+	/**
+	 * Processes a load() from a result, overloaded for with() support
+	 *
+	 * @return null
+	 */
+	protected function process_load($data)
+	{
+		$parsed_data = array();
+		foreach ($data as $key => $value)
 		{
-			// This is a with() assignment
 			if (strpos($key, ':'))
 			{
-				list($table, $column) = explode(':', $key);
-
+				list($table, $field) = explode(':', $key);
 				if ($table == $this->_table_name)
 				{
-					parent::__set($column, $value);
+					$parsed_data[$field] = $value;
 				}
-				elseif ($column)
+				elseif ($field)
 				{
-					$this->_lazy[inflector::singular($table)][$column] = $value;
+					$this->_lazy[inflector::singular($table)][$field] = $value;
 				}
 			}
 			else
 			{
-				parent::__set($key, $value);
+				$parsed_data[$key] = $value;
 			}
 		}
+		$this->_data = $parsed_data;
 	}
 
 	/**
