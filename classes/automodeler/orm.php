@@ -178,29 +178,28 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Finds many to many relationships
+	 * 
+	 * 	// Finds all roles belonging to a user
+	 * 	$user->find_related('roles');
 	 *
-	 * @param string $key      the model name to look for
-	 * @param array  $where    an array of where clauses to apply to the search
-	 * @param array  $order_by the column to order by
-	 * @param array  $order    the direction to order
+	 * @param string                        $key   the model name to look for
+	 * @param Database_Query_Builder_Select $query A select object to filter results with
 	 *
 	 * @return Database_Result
 	 */
-	public function find_related($key, $where = array(), $order_by = 'id', $order = 'ASC')
+	public function find_related($key, Database_Query_Builder_Select $query = NULL)
 	{
 		$model = 'Model_'.inflector::singular($key);
 
 		$temp = new $model();
+		if ( ! $query)
+		{
+			$query = db::select_array($temp->fields());
+		}
+
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$columns = AutoModeler::factory(inflector::singular($key))->fields();
-
-			$query = db::select_array($columns)->order_by($order_by, $order);
-			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-
-			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
+			return $temp->load($query, NULL);
 		}
 		else // Get a many to many relationship. TODO: convert to load() if possible
 		{
@@ -211,49 +210,50 @@ class AutoModeler_ORM extends AutoModeler
 
 			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
-			$query = db::select_array($columns)->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->order_by($order_by, $order);
+			$query = $query->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id');
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
+			return $temp->load($query, NULL);
 		}
 	}
 
 	/**
 	 * Finds parents of a belongs_to model
+	 * 
+	 * 	// Finds all users related to a role
+	 * 	$role->find_parent('users');
 	 *
-	 * @param string $key      the model name to look for
-	 * @param array  $where    an array of where clauses to apply to the search
-	 * @param array  $order_by the column to order by
-	 * @param array  $order    the direction to order
+	 * @param string                        $key   the model name to look for
+	 * @param Database_Query_Builder_Select $query A select object to filter results with
 	 *
 	 * @return Database_Result
 	 */
-	public function find_parent($key, $where = array(), $order_by = 'id', $order = 'ASC')
+	public function find_parent($key, Database_Query_Builder_Select $query = NULL)
 	{
+		$parent = AutoModeler::factory(inflector::singular($key));
+		$columns = $parent->fields();
+
+		if ( ! $query)
+		{
+			$query = db::select_array($parent->fields());
+		}
+
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$columns = AutoModeler::factory(inflector::singular($key))->fields();
+			$query = $query->where('id', '=', $this->_data[$key.'_id']);
 
-			$query = db::select_array($columns)->where('id', '=', $this->_data[$key.'_id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-
-			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
+			return $parent->load($query, NULL);
 		}
 		else // Get a many to many relationship. TODO: convert to load() if possible
 		{
-			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+			$related_table = $parent->get_table_name();
 			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
 
 			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
-			$query = db::select_array($columns)->from($related_table)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
+			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			return $parent->load($query, NULL);
 		}
 	}
 

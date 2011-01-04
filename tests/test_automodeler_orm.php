@@ -148,8 +148,8 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_find_parent_where()
 	{
 		return array(
-			array('Model_TestRole', 1, 'ormusers', array(), 2),
-			array('Model_TestRole', 1, 'ormusers', array(array('ormusers.username', '=', 'foobar')), 1),
+			array('Model_TestRole', 1, 'ormusers', NULL, 2),
+			array('Model_TestRole', 1, 'ormusers', db::select()->where('ormusers.username', '=', 'foobar'), 1),
 		);
 	}
 
@@ -202,8 +202,8 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_find_related_where()
 	{
 		return array(
-			array('Model_ORMUser', 1, 'testroles', array(), 2),
-			array('Model_ORMUser', 1, 'testroles', array(array('testroles.name', '=', 'Admin')), 1),
+			array('Model_ORMUser', 1, 'testroles', NULL, 2),
+			array('Model_ORMUser', 1, 'testroles', db::select()->where('testroles.name', '=', 'Admin'), 1),
 		);
 	}
 
