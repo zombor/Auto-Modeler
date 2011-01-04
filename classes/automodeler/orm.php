@@ -131,7 +131,7 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if ($query == NULL)
 		{
-			$query = db::select();
+			$query = db::select_array(array_keys($this->_data));
 		}
 
 		if ($this->_load_with !== NULL)
@@ -192,7 +192,9 @@ class AutoModeler_ORM extends AutoModeler
 		$temp = new $model();
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->order_by($order_by, $order);
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
+
+			$query = db::select_array($columns)->order_by($order_by, $order);
 			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
@@ -230,7 +232,9 @@ class AutoModeler_ORM extends AutoModeler
 	{
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->where('id', '=', $this->_data[$key.'_id']);
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
+
+			$query = db::select_array($columns)->where('id', '=', $this->_data[$key.'_id']);
 			foreach ($where as $sub_where)
 				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
 

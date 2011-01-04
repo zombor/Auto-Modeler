@@ -159,7 +159,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	public function test_load_does_not_use_set()
 	{
 		$user = new Model_TestUser;
-		$user->load(db::select()->where('id', '=', '1'));
+		$user->load(db::select_array($user->fields())->where('id', '=', '1'));
 
 		$this->assertSame('60518c1c11dc0452be71a7118a43ab68e3451b82', $user->password);
 	}
@@ -316,8 +316,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_select_list()
 	{
 		return array(
-			array('id', 'username', db::select('*'), array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
-			array('id', array('username', 'last_login'), db::select('*')->where('username', '=', 'foobar'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
+			array('id', 'username', db::select(), array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
+			array('id', array('username', 'last_login'), db::select()->where('username', '=', 'foobar'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
 		);
 	}
 
