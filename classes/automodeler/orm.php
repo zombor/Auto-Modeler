@@ -125,7 +125,8 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Overload load() to use with()
 	 *
-	 * @return null
+	 * @return $this when loading one object
+	 * @return Database_MySQL_Result when loading multiple results
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
@@ -258,6 +259,14 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Tests if a many to many relationship exists
+	 * 
+	 * Model must have a _has_many relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
+	 * 
+	 * The second parameter is the id of the related model to test the relationship of.
+	 * 
+	 * 	$user = new Model_User(1);
+	 * 	$user->has('roles', Model_Role::LOGIN);
 	 *
 	 * @param string $key   the model name to look for (plural)
 	 * @param string $value an id to search for
@@ -285,6 +294,11 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Removes a relationship if you aren't using innoDB (shame on you!)
+	 * 
+	 * Model must have a _has_many relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
+	 * 
+	 * The second parameter is the id of the related model to remove.
 	 *
 	 * @param string $key the model name to look for
 	 * @param string $id  an id to search for
@@ -298,6 +312,9 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Removes all relationships of a model
+	 * 
+	 * Model must have a _has_many or _belongs_to relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
 	 *
 	 * @param string $key the model name to look for
 	 *
@@ -318,7 +335,7 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Removes a parent relationship of a belongs_to
 	 *
-	 * @param string $key the model name to look for
+	 * @param string $key the model name to look for in plural form, without Model_ prefix
 	 *
 	 * @return integer
 	 */

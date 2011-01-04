@@ -80,7 +80,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 * @param integer                       $limit a number greater than one will return a data set
 	 *
 	 * @return $this when loading one object
-	 * @return Database_MySQL_Result when loading multiple results
+	 * @return Database_Result when loading multiple results
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
@@ -140,6 +140,8 @@ class AutoModeler extends Model implements ArrayAccess
 	 * Magic get method, gets model properties from the db
 	 *
 	 * @param string $key the field name to look for
+	 * 
+	 * @throws AutoModeler_Exception
 	 *
 	 * @return String
 	 */
@@ -152,10 +154,12 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * Magic get method, gets model properties from the db
+	 * Magic get method, set model properties to the model
 	 *
 	 * @param string $key   the field name to set
 	 * @param string $value the value to set to
+	 * 
+	 * @throws AutoModeler_Exception
 	 *
 	 */
 	public function __set($key, $value)

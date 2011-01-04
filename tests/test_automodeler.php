@@ -172,11 +172,11 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	public function test_load_no_limit()
 	{
 		$result = Model::factory('testuser')->load(NULL, NULL);
-		$this->assertTrue($result instanceof Database_MySQL_Result);
+		$this->assertTrue($result instanceof Database_Result);
 		$this->assertTrue(count($result) == 3);
 
 		$result = Model::factory('testuser')->load(NULL, 2);
-		$this->assertTrue($result instanceof Database_MySQL_Result);
+		$this->assertTrue($result instanceof Database_Result);
 		$this->assertTrue(count($result) == 2);
 	}
 
