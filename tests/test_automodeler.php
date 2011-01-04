@@ -165,6 +165,22 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that passing a limit higher than 1 (or null) returns a result set
+	 *
+	 * @return null
+	 */
+	public function test_load_no_limit()
+	{
+		$result = Model::factory('testuser')->load(NULL, NULL);
+		$this->assertTrue($result instanceof Database_MySQL_Result);
+		$this->assertTrue(count($result) == 3);
+
+		$result = Model::factory('testuser')->load(NULL, 2);
+		$this->assertTrue($result instanceof Database_MySQL_Result);
+		$this->assertTrue(count($result) == 2);
+	}
+
+	/**
 	 * Tests deleting a non-saved object
 	 *
 	 * @test

@@ -59,12 +59,28 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * Loads a single data row into this model
+	 * Loads a database result. Can be used to load a single item into this model
+	 * or return a result set of many models. You can pass any query builder object
+	 * into the first parameter to load the specific data you need. Common usage:
+	 * 
+	 * 	$user = new Model_User;
+	 * 	// Load a specific row
+	 * 	$user->load(db::select_array($user->fields())->where('id', '=', '1'));
+	 * 
+	 * 	// Load many rows with where
+	 * 	$result = Model::factory('user')->load(db::select_array($user->fields())->where('id', '>', '3'), NULL);
+	 * 
+	 * 	// Load all rows
+	 * 	$result = Model::factory('user')->load(NULL, NULL);
+	 * 
+	 * 	// Load first two rows
+	 * 	$result = Model::factory('user')->load(NULL, 2);
 	 * 
 	 * @param Database_Query_Builder_Select $query an optional query builder object to load with
 	 * @param integer                       $limit a number greater than one will return a data set
 	 *
-	 * @return null
+	 * @return $this when loading one object
+	 * @return Database_MySQL_Result when loading multiple results
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
@@ -86,14 +102,14 @@ class AutoModeler extends Model implements ArrayAccess
 		$query->from($this->_table_name);
 
 		// If we are going to return a data set, we want objects back
-		if ( ! $limit)
+		if ($limit != 1)
 		{
 			$query->as_object(get_class($this));
 		}
 
 		$data = $query->execute($this->_db);
 
-		if ( ! $limit)
+		if ($limit != 1)
 		{
 			return $data;
 		}
