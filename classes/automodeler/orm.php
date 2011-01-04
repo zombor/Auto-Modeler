@@ -201,7 +201,7 @@ class AutoModeler_ORM extends AutoModeler
 		{
 			return $temp->load($query, NULL);
 		}
-		else // Get a many to many relationship. TODO: convert to load() if possible
+		elseif (in_array($key, $this->_has_many)) // Get a many to many relationship.
 		{
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$join_table = $this->_table_name.'_'.$related_table;
@@ -213,6 +213,10 @@ class AutoModeler_ORM extends AutoModeler
 			$query = $query->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id');
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			return $temp->load($query, NULL);
+		}
+		else
+		{
+			throw new AutoModeler_Exception('Relationship "'.$key.'" doesn\'t exist in '.get_class($this));
 		}
 	}
 
@@ -243,7 +247,7 @@ class AutoModeler_ORM extends AutoModeler
 
 			return $parent->load($query, NULL);
 		}
-		else // Get a many to many relationship. TODO: convert to load() if possible
+		elseif(in_array($key, $this->_belongs_to)) // Get a many to many relationship.
 		{
 			$related_table = $parent->get_table_name();
 			$join_table = $related_table.'_'.$this->_table_name;
@@ -254,6 +258,10 @@ class AutoModeler_ORM extends AutoModeler
 
 			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			return $parent->load($query, NULL);
+		}
+		else
+		{
+			throw new AutoModeler_Exception('Relationship "'.$key.'" doesn\'t exist in '.get_class($this));
 		}
 	}
 

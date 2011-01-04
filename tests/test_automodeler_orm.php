@@ -166,8 +166,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that finding relationships that don't exist throws an exception
+	 * 
 	 * @dataProvider provider_find_related
-	 * @expectedException Database_Exception
+	 * @expectedException AutoModeler_Exception
 	 *
 	 * @covers AutoModeler_ORM::find_parent
 	 */
@@ -220,8 +222,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that finding relationships that don't exist throws an exception
+	 *
 	 * @dataProvider provider_find_parent
-	 * @expectedException Database_Exception
+	 * @expectedException AutoModeler_Exception
 	 *
 	 * @covers AutoModeler_ORM::find_related
 	 */
