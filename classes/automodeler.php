@@ -377,7 +377,7 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * Same as fetch_where except you get a nice array back for form::dropdown()
+	 * Get a nice array for form::dropdown()
 	 *
 	 * @param array  $key       the key to use for the array
 	 * @param array  $where     the value to use for the display
