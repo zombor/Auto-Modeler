@@ -112,21 +112,6 @@ class AutoModeler_ORM extends AutoModeler
 	}
 
 	/**
-	 * Gets clone data for load()
-	 *
-	 * @return array
-	 */
-	protected function get_clone_data()
-	{
-		return array_merge(
-			parent::get_clone_data(),
-			array(
-				'_lazy',
-			)
-		);
-	}
-
-	/**
 	 * Loads a model with a different one
 	 *
 	 * @return $this

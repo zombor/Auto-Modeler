@@ -274,7 +274,11 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$user = new Model_TestUser(1);
 
 		$serialized = serialize($user);
-		$this->assertSame('O:14:"Model_TestUser":8:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:40:"60518c1c11dc0452be71a7118a43ab68e3451b82";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";s:9:"'.$protected.'_state";s:6:"loaded";}', $serialized);
+		// Test the fields we expect back
+		$this->assertSame(
+			'O:14:"Model_TestUser":9:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:40:"60518c1c11dc0452be71a7118a43ab68e3451b82";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";s:9:"'.$protected.'_state";s:6:"loaded";s:10:"'.$protected.'_states";a:4:{i:0;s:3:"new";i:1;s:7:"loading";i:2;s:6:"loaded";i:3;s:7:"deleted";}}',
+			$serialized
+		);
 
 		$unserialized = unserialize($serialized);
 		$this->assertSame('foobar', $unserialized->username);

@@ -27,19 +27,20 @@ class AutoModeler extends Model implements ArrayAccess
 
 	protected $_lang = 'form_errors';
 
-	/**
-	 * Available states:
-	 *  - new
-	 *  - loading
-	 *  - loaded
-	 *  - deleted
-	 */
 	protected $_state = AutoModeler::STATE_NEW;
 
 	const STATE_NEW = 'new';
 	const STATE_LOADING = 'loading';
 	const STATE_LOADED = 'loaded';
 	const STATE_DELETED = 'deleted';
+
+	// Lists available states for this model
+	protected $_states = array(
+		AutoModeler::STATE_NEW,
+		AutoModeler::STATE_LOADING,
+		AutoModeler::STATE_LOADED,
+		AutoModeler::STATE_DELETED
+	);
 
 	/**
 	 * Standard constructor, accepts an `id` column to look for
@@ -67,18 +68,24 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
+		// Start
 		$this->_state = AutoModeler::STATE_LOADING;
 
+		// Use a normal select query by default
 		if ($query == NULL)
 		{
 			$query = db::select_array(array_keys($this->_data));
 		}
 
+		// Add limit if passed
 		if ($limit)
+		{
 			$query->limit($limit);
+		}
 
 		$query->from($this->_table_name);
 
+		// If we are going to return a data set, we want objects back
 		if ( ! $limit)
 		{
 			$query->as_object(get_class($this));
@@ -91,11 +98,13 @@ class AutoModeler extends Model implements ArrayAccess
 			return $data;
 		}
 
+		// Process the results with this model's logic
 		if (count($data) AND $data = $data->current())
 		{
 			$this->process_load($data);
 		}
 
+		// We are done!
 		$this->_state = AutoModeler::STATE_LOADED;
 
 		return $this;
@@ -108,23 +117,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	protected function process_load($data)
 	{
-		$parsed_data = array();
-		foreach ($data as $key => $value)
-		{
-			if (strpos($key, ':'))
-			{
-				list($table, $field) = explode(':', $key);
-				if ($table == $this->_table_name)
-				{
-					$parsed_data[$field] = $value;
-				}
-			}
-			else
-			{
-				$parsed_data[$key] = $value;
-			}
-		}
-		$this->_data = $parsed_data;
+		$this->_data = $data;
 	}
 
 	/**
@@ -202,7 +195,7 @@ class AutoModeler extends Model implements ArrayAccess
 	{
 		if ($state)
 		{
-			if ( ! in_array($state, array(AutoModeler::STATE_NEW, AutoModeler::STATE_LOADING, AutoModeler::STATE_LOADED, AutoModeler::STATE_DELETED)))
+			if ( ! in_array($state, $this->_states))
 			{
 				throw new AutoModeler_Exception('Invalid state');
 			}
@@ -223,18 +216,6 @@ class AutoModeler extends Model implements ArrayAccess
 	public function as_array()
 	{
 		return $this->_data;
-	}
-
-	/**
-	 * Gets clone data for load()
-	 *
-	 * @return array
-	 */
-	protected function get_clone_data()
-	{
-		return array(
-			'_data',
-		);
 	}
 
 	/**
