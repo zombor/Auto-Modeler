@@ -81,40 +81,38 @@ class AutoModeler_ORM extends AutoModeler
 		}
 		else
 		{
-			// This is a with() assignment
-			if (strpos($key, ':'))
-			{
-				list($table, $column) = explode(':', $key);
-
-				if ($table == $this->_table_name)
-				{
-					parent::__set($column, $value);
-				}
-				elseif ($column)
-				{
-					$this->_lazy[inflector::singular($table)][$column] = $value;
-				}
-			}
-			else
-			{
-				parent::__set($key, $value);
-			}
+			parent::__set($key, $value);
 		}
 	}
 
 	/**
-	 * Gets clone data for load()
+	 * Processes a load() from a result, overloaded for with() support
 	 *
-	 * @return array
+	 * @return null
 	 */
-	protected function get_clone_data()
+	protected function process_load($data)
 	{
-		return array_merge(
-			parent::get_clone_data(),
-			array(
-				'_lazy',
-			)
-		);
+		$parsed_data = array();
+		foreach ($data as $key => $value)
+		{
+			if (strpos($key, ':'))
+			{
+				list($table, $field) = explode(':', $key);
+				if ($table == $this->_table_name)
+				{
+					$parsed_data[$field] = $value;
+				}
+				elseif ($field)
+				{
+					$this->_lazy[inflector::singular($table)][$field] = $value;
+				}
+			}
+			else
+			{
+				$parsed_data[$key] = $value;
+			}
+		}
+		$this->_data = $parsed_data;
 	}
 
 	/**
@@ -131,13 +129,14 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Overload load() to use with()
 	 *
-	 * @return null
+	 * @return $this when loading one object
+	 * @return Database_MySQL_Result when loading multiple results
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
 		if ($query == NULL)
 		{
-			$query = db::select();
+			$query = db::select_array(array_keys($this->_data));
 		}
 
 		if ($this->_load_with !== NULL)
@@ -183,29 +182,30 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Finds many to many relationships
+	 * 
+	 * 	// Finds all roles belonging to a user
+	 * 	$user->find_related('roles');
 	 *
-	 * @param string $key      the model name to look for
-	 * @param array  $where    an array of where clauses to apply to the search
-	 * @param array  $order_by the column to order by
-	 * @param array  $order    the direction to order
+	 * @param string                        $key   the model name to look for
+	 * @param Database_Query_Builder_Select $query A select object to filter results with
 	 *
 	 * @return Database_Result
 	 */
-	public function find_related($key, $where = array(), $order_by = 'id', $order = 'ASC')
+	public function find_related($key, Database_Query_Builder_Select $query = NULL)
 	{
 		$model = 'Model_'.inflector::singular($key);
 
 		$temp = new $model();
+		if ( ! $query)
+		{
+			$query = db::select_array($temp->fields());
+		}
+
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->order_by($order_by, $order);
-			$query->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-
-			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
+			return $temp->load($query, NULL);
 		}
-		else // Get a many to many relationship. TODO: convert to load() if possible
+		elseif (in_array($key, $this->_has_many)) // Get a many to many relationship.
 		{
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
 			$join_table = $this->_table_name.'_'.$related_table;
@@ -214,52 +214,71 @@ class AutoModeler_ORM extends AutoModeler
 
 			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
-			$query = db::select_array($columns)->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id')->order_by($order_by, $order);
+			$query = $query->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id');
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
+			return $temp->load($query, NULL);
+		}
+		else
+		{
+			throw new AutoModeler_Exception('Relationship "'.$key.'" doesn\'t exist in '.get_class($this));
 		}
 	}
 
 	/**
 	 * Finds parents of a belongs_to model
+	 * 
+	 * 	// Finds all users related to a role
+	 * 	$role->find_parent('users');
 	 *
-	 * @param string $key      the model name to look for
-	 * @param array  $where    an array of where clauses to apply to the search
-	 * @param array  $order_by the column to order by
-	 * @param array  $order    the direction to order
+	 * @param string                        $key   the model name to look for
+	 * @param Database_Query_Builder_Select $query A select object to filter results with
 	 *
 	 * @return Database_Result
 	 */
-	public function find_parent($key, $where = array(), $order_by = 'id', $order = 'ASC')
+	public function find_parent($key, Database_Query_Builder_Select $query = NULL)
 	{
+		$parent = AutoModeler::factory(inflector::singular($key));
+		$columns = $parent->fields();
+
+		if ( ! $query)
+		{
+			$query = db::select_array($parent->fields());
+		}
+
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$query = db::select()->where('id', '=', $this->_data[$key.'_id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
+			$query = $query->where('id', '=', $this->_data[$key.'_id']);
 
-			return AutoModeler::factory(inflector::singular($key))->load($query, NULL);
+			return $parent->load($query, NULL);
 		}
-		else // Get a many to many relationship. TODO: convert to load() if possible
+		elseif(in_array($key, $this->_belongs_to)) // Get a many to many relationship.
 		{
-			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+			$related_table = $parent->get_table_name();
 			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
 
 			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
-			$query = db::select_array($columns)->from($related_table)->order_by($order_by, $order)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
-			foreach ($where as $sub_where)
-				$query->where($sub_where[0], $sub_where[1], $sub_where[2]);
-			return $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->as_object('Model_'.ucwords(inflector::singular($key)))->execute($this->_db);
+			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			return $parent->load($query, NULL);
+		}
+		else
+		{
+			throw new AutoModeler_Exception('Relationship "'.$key.'" doesn\'t exist in '.get_class($this));
 		}
 	}
 
 	/**
 	 * Tests if a many to many relationship exists
+	 * 
+	 * Model must have a _has_many relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
+	 * 
+	 * The second parameter is the id of the related model to test the relationship of.
+	 * 
+	 * 	$user = new Model_User(1);
+	 * 	$user->has('roles', Model_Role::LOGIN);
 	 *
 	 * @param string $key   the model name to look for (plural)
 	 * @param string $value an id to search for
@@ -287,6 +306,11 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Removes a relationship if you aren't using innoDB (shame on you!)
+	 * 
+	 * Model must have a _has_many relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
+	 * 
+	 * The second parameter is the id of the related model to remove.
 	 *
 	 * @param string $key the model name to look for
 	 * @param string $id  an id to search for
@@ -300,6 +324,9 @@ class AutoModeler_ORM extends AutoModeler
 
 	/**
 	 * Removes all relationships of a model
+	 * 
+	 * Model must have a _has_many or _belongs_to relationship with the other model, which is
+	 * passed as the first parameter in plural form without the Model_ prefix.
 	 *
 	 * @param string $key the model name to look for
 	 *
@@ -320,7 +347,7 @@ class AutoModeler_ORM extends AutoModeler
 	/**
 	 * Removes a parent relationship of a belongs_to
 	 *
-	 * @param string $key the model name to look for
+	 * @param string $key the model name to look for in plural form, without Model_ prefix
 	 *
 	 * @return integer
 	 */

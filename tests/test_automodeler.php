@@ -63,6 +63,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	 * @covers AutoModeler::is_valid
 	 * @covers AutoModeler::as_array
 	 * @covers AutoModeler::set_fields
+	 * @covers AutoModeler::state
+	 * @covers AutoModeler::load
 	 * @param string $str       String to parse
 	 * @param array  $expected  Callback and its parameters
 	 */
@@ -74,13 +76,14 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$user->email = $email;
 		$user->last_login = $last_login;
 		$user->logins = $logins;
+		$this->assertTrue($user->state() == AutoModeler::STATE_NEW);
 		$user->save();
 
 		$this->assertSame(
 			array(
 				'id'         => $user->id,
 				'username'   => $username,
-				'password'   => $password,
+				'password'   => sha1($password),
 				'email'      => $email,
 				'last_login' => $last_login,
 				'logins'     => $logins,
@@ -88,7 +91,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 			$user->as_array()
 		);
 
-		$this->assertTrue( ! empty($user->id));
+		$this->assertFalse(empty($user->id));
+		$this->assertTrue($user->state() == AutoModeler::STATE_LOADED);
 
 		$user = new Model_TestUser;
 		$user->set_fields(
@@ -101,7 +105,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 			)
 		);
 		$user->save();
-		$this->assertTrue( ! empty($user->id));
+		$this->assertFalse(empty($user->id));
 	}
 
 	/**
@@ -144,6 +148,36 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 
 		$deletions = $user->delete();
 		$this->assertSame(1, $deletions);
+		$this->assertTrue($user->state() == AutoModeler::STATE_DELETED);
+	}
+
+	/**
+	 * Tests that load() does not use __set()
+	 *
+	 * @return null
+	 */
+	public function test_load_does_not_use_set()
+	{
+		$user = new Model_TestUser;
+		$user->load(db::select_array($user->fields())->where('id', '=', '1'));
+
+		$this->assertSame('60518c1c11dc0452be71a7118a43ab68e3451b82', $user->password);
+	}
+
+	/**
+	 * Tests that passing a limit higher than 1 (or null) returns a result set
+	 *
+	 * @return null
+	 */
+	public function test_load_no_limit()
+	{
+		$result = Model::factory('testuser')->load(NULL, NULL);
+		$this->assertTrue($result instanceof Database_Result);
+		$this->assertTrue(count($result) == 3);
+
+		$result = Model::factory('testuser')->load(NULL, 2);
+		$this->assertTrue($result instanceof Database_Result);
+		$this->assertTrue(count($result) == 2);
 	}
 
 	/**
@@ -256,7 +290,11 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$user = new Model_TestUser(1);
 
 		$serialized = serialize($user);
-		$this->assertSame('O:14:"Model_TestUser":7:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:6:"barfoo";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";}', $serialized);
+		// Test the fields we expect back
+		$this->assertSame(
+			'O:14:"Model_TestUser":9:{s:14:"'.$protected.'_table_name";s:9:"testusers";s:8:"'.$protected.'_data";a:6:{s:2:"id";s:1:"1";s:8:"username";s:6:"foobar";s:8:"password";s:40:"60518c1c11dc0452be71a7118a43ab68e3451b82";s:5:"email";s:11:"foo@bar.com";s:10:"last_login";s:5:"12345";s:6:"logins";s:2:"10";}s:9:"'.$protected.'_rules";a:2:{s:8:"username";a:1:{i:0;s:9:"not_empty";}s:5:"email";a:1:{i:0;s:5:"email";}}s:13:"'.$protected.'_callbacks";a:0:{}s:14:"'.$protected.'_validation";a:0:{}s:13:"'.$protected.'_validated";b:0;s:8:"'.$protected.'_lang";s:11:"form_errors";s:9:"'.$protected.'_state";s:6:"loaded";s:10:"'.$protected.'_states";a:4:{i:0;s:3:"new";i:1;s:7:"loading";i:2;s:6:"loaded";i:3;s:7:"deleted";}}',
+			$serialized
+		);
 
 		$unserialized = unserialize($serialized);
 		$this->assertSame('foobar', $unserialized->username);
@@ -294,8 +332,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_select_list()
 	{
 		return array(
-			array('id', 'username', array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
-			array('id', array('username', 'last_login'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
+			array('id', 'username', db::select(), array('1' => 'foobar', '2' => 'foobar', '3' => 'foobar')),
+			array('id', array('username', 'last_login'), db::select()->where('username', '=', 'foobar'), array('1' => 'foobar - 12345', '2' => 'foobar - 12345', '3' => 'foobar - 12345')),
 		);
 	}
 
@@ -306,44 +344,22 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	 * @dataProvider provider_select_list
 	 * @covers AutoModeler::select_list
 	 */
-	public function test_select_list($key, $display, $expected)
+	public function test_select_list($key, $display, $query, $expected)
 	{
-		$this->assertSame($expected, AutoModeler::factory('testuser')->select_list($key, $display));
+		$this->assertSame($expected, AutoModeler::factory('testuser')->select_list($key, $display, $query));
 	}
 
 	/**
-	 * Tests fetching all data in the database
+	 * Tests that assignment to the model properties works
 	 *
 	 * @test
-	 * @covers AutoModeler::fetch_all
+	 * @return null
 	 */
-	public function test_fetch_all()
+	public function test_assignment()
 	{
-		$users = AutoModeler::factory('testuser')->fetch_all();
-		$this->assertSame(3, count($users));
-		$this->assertTrue($users->current() instanceof Model_TestUser);
+		$model = new Model_TestUser;
+		$model->username = 'foobar';
 
-		$users = AutoModeler::factory('testuser')->fetch_all('id', 'ASC');
-		$this->assertSame('1', $users->current()->id);
-
-		$users = AutoModeler::factory('testuser')->fetch_all('id', 'DESC');
-		$this->assertSame('3', $users->current()->id);
-	}
-
-	/**
-	 * Tests fetching where data in the database
-	 *
-	 * @test
-	 * @covers AutoModeler::fetch_where
-	 */
-	public function test_fetch_where()
-	{
-		$users = AutoModeler::factory('testuser')->fetch_where(array(array('id', '=', '1')));
-		$this->assertSame(1, count($users));
-		$this->assertTrue($users->current() instanceof Model_TestUser);
-		$this->assertSame('1', $users->current()->id);
-
-		$users = AutoModeler::factory('testuser')->fetch_where(array(array('username', '=', 'foobar')));
-		$this->assertSame(3, count($users));
+		$this->assertSame($model->username, 'foobar');
 	}
 }

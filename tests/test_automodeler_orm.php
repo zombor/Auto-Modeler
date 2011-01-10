@@ -148,8 +148,8 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_find_parent_where()
 	{
 		return array(
-			array('Model_TestRole', 1, 'ormusers', array(), 2),
-			array('Model_TestRole', 1, 'ormusers', array(array('ormusers.username', '=', 'foobar')), 1),
+			array('Model_TestRole', 1, 'ormusers', NULL, 2),
+			array('Model_TestRole', 1, 'ormusers', db::select()->where('ormusers.username', '=', 'foobar'), 1),
 		);
 	}
 
@@ -166,8 +166,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that finding relationships that don't exist throws an exception
+	 * 
 	 * @dataProvider provider_find_related
-	 * @expectedException Database_Exception
+	 * @expectedException AutoModeler_Exception
 	 *
 	 * @covers AutoModeler_ORM::find_parent
 	 */
@@ -202,8 +204,8 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	public function provider_find_related_where()
 	{
 		return array(
-			array('Model_ORMUser', 1, 'testroles', array(), 2),
-			array('Model_ORMUser', 1, 'testroles', array(array('testroles.name', '=', 'Admin')), 1),
+			array('Model_ORMUser', 1, 'testroles', NULL, 2),
+			array('Model_ORMUser', 1, 'testroles', db::select()->where('testroles.name', '=', 'Admin'), 1),
 		);
 	}
 
@@ -220,8 +222,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that finding relationships that don't exist throws an exception
+	 *
 	 * @dataProvider provider_find_parent
-	 * @expectedException Database_Exception
+	 * @expectedException AutoModeler_Exception
 	 *
 	 * @covers AutoModeler_ORM::find_related
 	 */
@@ -274,6 +278,7 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		// There should only be one query
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
 		$this->assertTrue($user instanceof Model_ORMUser);
+
 		$this->assertTrue($user->foobar instanceof Model_Foobar);
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
 	}
@@ -350,4 +355,18 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->remove_parent($related_model));
 		$this->assertSame(0, count($model->find_parent($related_model)));
 	}
+
+		/**
+		 * Tests that assignment to the model properties works
+		 *
+		 * @test
+		 * @return null
+		 */
+		public function test_assignment()
+		{
+			$model = new Model_ORMUser;
+			$model->username = 'foobar';
+
+			$this->assertSame($model->username, 'foobar');
+		}
 }

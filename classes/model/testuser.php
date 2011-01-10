@@ -20,4 +20,20 @@ class Model_TestUser extends AutoModeler {
 
 	protected $_rules = array('username' => array('not_empty'),
 	                          'email' => array('email'));
+
+	/**
+	 * overload __set() to hash a password
+	 *
+	 * @return string
+	 */
+	public function __set($key, $value)
+	{
+		if ($key == 'password')
+		{
+			$this->_data[$key] = sha1($value);
+			return;
+		}
+
+		return parent::__set($key, $value);
+	}
 }

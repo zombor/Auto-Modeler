@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = '3.6.3';
+	const VERSION = '3.7.0';
 
 	// The database table name
 	protected $_table_name = '';
@@ -26,6 +26,21 @@ class AutoModeler extends Model implements ArrayAccess
 	protected $_validated = FALSE;
 
 	protected $_lang = 'form_errors';
+
+	protected $_state = AutoModeler::STATE_NEW;
+
+	const STATE_NEW = 'new';
+	const STATE_LOADING = 'loading';
+	const STATE_LOADED = 'loaded';
+	const STATE_DELETED = 'deleted';
+
+	// Lists available states for this model
+	protected $_states = array(
+		AutoModeler::STATE_NEW,
+		AutoModeler::STATE_LOADING,
+		AutoModeler::STATE_LOADED,
+		AutoModeler::STATE_DELETED
+	);
 
 	/**
 	 * Standard constructor, accepts an `id` column to look for
@@ -44,47 +59,89 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * Loads a single data row into this model
+	 * Loads a database result. Can be used to load a single item into this model
+	 * or return a result set of many models. You can pass any query builder object
+	 * into the first parameter to load the specific data you need. Common usage:
+	 * 
+	 * 	$user = new Model_User;
+	 * 	// Load a specific row
+	 * 	$user->load(db::select_array($user->fields())->where('id', '=', '1'));
+	 * 
+	 * 	// Load many rows with where
+	 * 	$result = Model::factory('user')->load(db::select_array($user->fields())->where('id', '>', '3'), NULL);
+	 * 
+	 * 	// Load all rows
+	 * 	$result = Model::factory('user')->load(NULL, NULL);
+	 * 
+	 * 	// Load first two rows
+	 * 	$result = Model::factory('user')->load(NULL, 2);
 	 * 
 	 * @param Database_Query_Builder_Select $query an optional query builder object to load with
 	 * @param integer                       $limit a number greater than one will return a data set
 	 *
-	 * @return null
+	 * @return $this when loading one object
+	 * @return Database_Result when loading multiple results
 	 */
 	public function load(Database_Query_Builder_Select $query = NULL, $limit = 1)
 	{
+		// Start
+		$this->_state = AutoModeler::STATE_LOADING;
+
+		// Use a normal select query by default
 		if ($query == NULL)
 		{
 			$query = db::select_array(array_keys($this->_data));
 		}
 
+		// Add limit if passed
 		if ($limit)
+		{
 			$query->limit($limit);
+		}
 
-		$query->from($this->_table_name)->as_object(get_class($this));
+		$query->from($this->_table_name);
+
+		// If we are going to return a data set, we want objects back
+		if ($limit != 1)
+		{
+			$query->as_object(get_class($this));
+		}
 
 		$data = $query->execute($this->_db);
 
-		if ( ! $limit)
+		if ($limit != 1)
 		{
 			return $data;
 		}
 
+		// Process the results with this model's logic
 		if (count($data) AND $data = $data->current())
 		{
-			foreach ($this->get_clone_data() as $field)
-			{
-				$this->$field = $data->$field;
-			}
+			$this->process_load($data);
 		}
 
+		// We are done!
+		$this->_state = AutoModeler::STATE_LOADED;
+
 		return $this;
+	}
+
+	/**
+	 * Processes a load() from a result
+	 *
+	 * @return null
+	 */
+	protected function process_load($data)
+	{
+		$this->_data = $data;
 	}
 
 	/**
 	 * Magic get method, gets model properties from the db
 	 *
 	 * @param string $key the field name to look for
+	 * 
+	 * @throws AutoModeler_Exception
 	 *
 	 * @return String
 	 */
@@ -97,10 +154,12 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
-	 * Magic get method, gets model properties from the db
+	 * Magic get method, set model properties to the model
 	 *
 	 * @param string $key   the field name to set
 	 * @param string $value the value to set to
+	 * 
+	 * @throws AutoModeler_Exception
 	 *
 	 */
 	public function __set($key, $value)
@@ -148,6 +207,28 @@ class AutoModeler extends Model implements ArrayAccess
 	}
 
 	/**
+	 * Gets/sets the object state
+	 *
+	 * @return string/$this when getting/setting
+	 */
+	public function state($state = NULL)
+	{
+		if ($state)
+		{
+			if ( ! in_array($state, $this->_states))
+			{
+				throw new AutoModeler_Exception('Invalid state');
+			}
+
+			$this->_state = $state;
+
+			return $this;
+		}
+
+		return $this->_state;
+	}
+
+	/**
 	 * Gets an array version of the model
 	 *
 	 * @return array
@@ -155,18 +236,6 @@ class AutoModeler extends Model implements ArrayAccess
 	public function as_array()
 	{
 		return $this->_data;
-	}
-
-	/**
-	 * Gets clone data for load()
-	 *
-	 * @return array
-	 */
-	protected function get_clone_data()
-	{
-		return array(
-			'_data',
-		);
 	}
 
 	/**
@@ -270,7 +339,7 @@ class AutoModeler extends Model implements ArrayAccess
 
 		if ($status === TRUE)
 		{
-			if ($this->_data['id']) // Do an update
+			if ($this->state() == AutoModeler::STATE_LOADED) // Do an update
 			{
 				return count(db::update($this->_table_name)->set(array_diff_assoc($this->_data, array('id' => $this->_data['id'])))->where('id', '=', $this->_data['id'])->execute($this->_db));
 			}
@@ -280,6 +349,9 @@ class AutoModeler extends Model implements ArrayAccess
 				$id = db::insert($this->_table_name)
 						->columns($columns)
 						->values($this->_data)->execute($this->_db);
+
+				$this->state(AutoModeler::STATE_LOADED);
+
 				return ($this->_data['id'] = $id[0]);
 			}
 		}
@@ -294,68 +366,49 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function delete()
 	{
-		if ($this->_data['id'])
+		if (AutoModeler::STATE_LOADED)
 		{
+			$this->_state = AutoModeler::STATE_DELETED;
+
 			return db::delete($this->_table_name)->where('id', '=', $this->_data['id'])->execute($this->_db);
 		}
 
-		throw new AutoModeler_Exception('Cannot delete a non-saved model '.get_class($this).'!', array(), array());
+		throw new AutoModeler_Exception('Cannot delete a non-loaded model '.get_class($this).'!', array(), array());
 	}
 
 	/**
-	 * fetches all rows in the database for this model
-	 *
-	 * @param string $order_by  a column to order on
-	 * @param string $direction the direction to sort
-	 *
-	 * @return Database_Result
-	 */
-	public function fetch_all($order_by = 'id', $direction = 'ASC')
-	{
-		return $this->load(db::select_array(array_keys($this->_data))->order_by($order_by, $direction), NULL);
-	}
-
-	/**
-	 * Same as fetch_all except you can pass a where clause
-	 * 
-	 * DEPRICATED AS OF 3.6
-	 * WILL BE REMOVED IN 3.7
-	 *
-	 * @param array  $where     the where clause
-	 * @param string $order_by  a column to order on
-	 * @param string $direction the direction to sort
-	 * @param string $type      the type of where to run
-	 *
-	 * @return Database_Result
-	 */
-	public function fetch_where($wheres = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
-	{
-		$function = $type.'_where';
-		$query = db::select_array(array_keys($this->_data))->order_by($order_by, $direction)->as_object(get_class($this));
-
-		foreach ($wheres as $where)
-			$query->$function($where[0], $where[1], $where[2]);
-
-		return $this->load($query, NULL);
-	}
-
-	/**
-	 * Same as fetch_where except you get a nice array back for form::dropdown()
+	 * Get a nice array for form::dropdown()
 	 *
 	 * @param array  $key       the key to use for the array
 	 * @param array  $where     the value to use for the display
-	 * @param string $order_by  a column to order on
 	 * @param array  $where     the where clause
 	 *
 	 * @return Database_Result
 	 */
-	public function select_list($key, $display, $order_by = 'id', $where = array())
+	public function select_list($key, $display, Database_Query_Builder_Select $query = NULL)
 	{
 		$rows = array();
 
-		$query = empty($where) ? $this->fetch_all($order_by) : $this->fetch_where($where, $order_by);
+		$array_display = FALSE;
+		$select_array = array($key);
+		if (is_array($display))
+		{
+			$array_display = TRUE;
+			$select_array = array_merge($select_array, $display);
+		}
+		else
+		{
+			$select_array[] = $display;
+		}
 
-		$array_display = is_array($display);
+		if ($query) // Fetch selected rows
+		{
+			$query = $this->load($query->select_array($select_array), NULL);
+		}
+		else // Fetch all rows
+		{
+			$query = $this->load(db::select_array($select_array), NULL);
+		}
 
 		foreach ($query as $row)
 		{
@@ -367,7 +420,9 @@ class AutoModeler extends Model implements ArrayAccess
 				$rows[$row->$key] = implode(' - ', $display_str);
 			}
 			else
+			{
 				$rows[$row->$key] = $row->$display;
+			}
 		}
 
 		return $rows;
