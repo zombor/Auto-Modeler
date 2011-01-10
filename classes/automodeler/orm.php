@@ -79,6 +79,10 @@ class AutoModeler_ORM extends AutoModeler
 				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
 			}
 		}
+		else
+		{
+			parent::__set($key, $value);
+		}
 	}
 
 	/**

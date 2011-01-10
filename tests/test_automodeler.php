@@ -348,4 +348,18 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	{
 		$this->assertSame($expected, AutoModeler::factory('testuser')->select_list($key, $display, $query));
 	}
+
+	/**
+	 * Tests that assignment to the model properties works
+	 *
+	 * @test
+	 * @return null
+	 */
+	public function test_assignment()
+	{
+		$model = new Model_TestUser;
+		$model->username = 'foobar';
+
+		$this->assertSame($model->username, 'foobar');
+	}
 }

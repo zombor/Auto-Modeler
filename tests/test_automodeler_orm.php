@@ -355,4 +355,18 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected, $model->remove_parent($related_model));
 		$this->assertSame(0, count($model->find_parent($related_model)));
 	}
+
+		/**
+		 * Tests that assignment to the model properties works
+		 *
+		 * @test
+		 * @return null
+		 */
+		public function test_assignment()
+		{
+			$model = new Model_ORMUser;
+			$model->username = 'foobar';
+
+			$this->assertSame($model->username, 'foobar');
+		}
 }
