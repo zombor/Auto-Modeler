@@ -185,7 +185,8 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		return array(
 			array('Model_ORMUser', 1, 'testroles', 2),
 			array('Model_ORMUser', 2, 'testroles', 1),
-			array('Model_Foobar', 1, 'ormusers', 3)
+			array('Model_Foobar', 1, 'ormusers', 3),
+			array('Model_ORMUser', 1, 'foobars', 1),
 		);
 	}
 

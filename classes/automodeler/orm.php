@@ -203,7 +203,7 @@ class AutoModeler_ORM extends AutoModeler
 
 		if ($temp->field_exists(inflector::singular($this->_table_name).'_id')) // Look for a one to many relationship
 		{
-			return $temp->load($query, NULL);
+			return $temp->load($query->where(inflector::singular($this->_table_name).'_id', '=', $this->id), NULL);
 		}
 		elseif (in_array($key, $this->_has_many)) // Get a many to many relationship.
 		{
@@ -247,9 +247,7 @@ class AutoModeler_ORM extends AutoModeler
 
 		if ($this->field_exists($key.'_id')) // Look for a one to many relationship
 		{
-			$query = $query->where('id', '=', $this->_data[$key.'_id']);
-
-			return $parent->load($query, NULL);
+			return $parent->load($query->where('id', '=', $this->_data[$key.'_id']), NULL);
 		}
 		elseif(in_array($key, $this->_belongs_to)) // Get a many to many relationship.
 		{

@@ -12,6 +12,7 @@ class Model_Foobar extends AutoModeler_ORM {
 	protected $_table_name = 'foobars';
 
 	protected $_data = array('id' => '',
-	                         'name' => '');
+	                         'name' => '',
+	                         'ormuser_id' => '',);
 
 } // End Model_Foobar

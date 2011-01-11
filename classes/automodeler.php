@@ -9,7 +9,7 @@
 */
 class AutoModeler extends Model implements ArrayAccess
 {
-	const VERSION = '3.7.0';
+	const VERSION = '3.7.1';
 
 	// The database table name
 	protected $_table_name = '';
@@ -121,7 +121,7 @@ class AutoModeler extends Model implements ArrayAccess
 		}
 
 		// We are done!
-		$this->_state = AutoModeler::STATE_LOADED;
+		$this->process_load_state();
 
 		return $this;
 	}
@@ -134,6 +134,23 @@ class AutoModeler extends Model implements ArrayAccess
 	protected function process_load($data)
 	{
 		$this->_data = $data;
+	}
+
+	/**
+	 * Processes the object state before a load() finishes
+	 *
+	 * @return null
+	 */
+	public function process_load_state()
+	{
+		if ($this->id)
+		{
+			$this->_state = AutoModeler::STATE_LOADED;
+		}
+		else
+		{
+			$this->_state = AutoModeler::STATE_NEW;
+		}
 	}
 
 	/**
