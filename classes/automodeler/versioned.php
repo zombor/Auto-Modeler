@@ -22,13 +22,13 @@ class AutoModeler_Versioned extends AutoModeler_ORM
 	 */
 	public function save($validation = NULL)
 	{
-		if(count(array_diff($this->_data, $this->_data_old)) == 0)
-		{
-			return; // Need to throw a warning for this when nothing changed.
-		}
-		
 		if ($this->_data['id']) // Push the version up
 		{
+			if(count(array_diff($this->_data, $this->_data_old)) == 0)
+			{
+				return; // Need to throw a warning for this when nothing changed.
+			}
+			
 			$this->_data_old['id'] = null;
 			$this->_data_old[inflector::singular($this->_table_name).'_id'] = $this->_data['id'];
 			$this->_data['version'] = 1 + $this->_data['version'];
