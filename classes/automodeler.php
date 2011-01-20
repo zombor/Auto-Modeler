@@ -7,7 +7,7 @@
 * @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
-class AutoModeler extends Model implements ArrayAccess
+class AutoModeler extends Model_Database implements ArrayAccess
 {
 	const VERSION = '3.7.1';
 
@@ -50,7 +50,7 @@ class AutoModeler extends Model implements ArrayAccess
 	 */
 	public function __construct($id = NULL)
 	{
-		parent::__construct();
+		parent::__construct($this->_db);
 
 		if ($id !== NULL)
 		{
