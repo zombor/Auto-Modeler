@@ -203,15 +203,6 @@ class AutoModeler extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * wakeup method for serialization
-	 *
-	 */
-	public function __wakeup()
-	{
-		$this->_db = Database::instance($this->_db);
-	}
-
-	/**
 	 * Magic isset method to test _data
 	 *
 	 * @param string $name the property to test
