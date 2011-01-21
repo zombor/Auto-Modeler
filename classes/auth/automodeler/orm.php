@@ -179,7 +179,7 @@ class Auth_AutoModeler_ORM extends Auth {
 	 *
 	 * @return  mixed
 	 */
-	public function get_user()
+	public function get_user($default = NULL)
 	{
 		$user = parent::get_user();
 
@@ -274,7 +274,7 @@ class Auth_AutoModeler_ORM extends Auth {
 			return FALSE;
 		}
 
-		$hash = $this->hash_password($password, $this->find_salt($user->password));
+		$hash = $this->hash($password);
 
 		return $hash == $user->password;
 	}

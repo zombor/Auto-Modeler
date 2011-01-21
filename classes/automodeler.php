@@ -314,7 +314,7 @@ class AutoModeler extends Model_Database implements ArrayAccess
 	 */
 	public function is_valid($validation = NULL)
 	{
-		$data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validate::factory($this->_data);
+		$data = $validation instanceof Validation ? $validation->copy($validation->as_array()+$this->_data) : Validation::factory($this->_data);
 
 		foreach ($this->_rules as $field => $rule)
 		{
@@ -326,9 +326,6 @@ class AutoModeler extends Model_Database implements ArrayAccess
 					$data->rule($field, $key, $value);
 			}
 		}
-
-		foreach ($this->_callbacks as $field => $callback)
-			$data->callback($field, array($this, $callback));
 
 		if ($data->check(TRUE))
 		{
