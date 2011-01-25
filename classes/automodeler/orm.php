@@ -212,8 +212,6 @@ class AutoModeler_ORM extends AutoModeler
 			$this_key = inflector::singular($this->_table_name).'_id';
 			$f_key = inflector::singular($related_table).'_id';
 
-			$columns = AutoModeler::factory(inflector::singular($key))->fields();
-
 			$query = $query->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id');
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			return $temp->load($query, NULL);
@@ -238,7 +236,6 @@ class AutoModeler_ORM extends AutoModeler
 	public function find_parent($key, Database_Query_Builder_Select $query = NULL)
 	{
 		$parent = AutoModeler::factory(inflector::singular($key));
-		$columns = $parent->fields();
 
 		if ( ! $query)
 		{
@@ -255,8 +252,6 @@ class AutoModeler_ORM extends AutoModeler
 			$join_table = $related_table.'_'.$this->_table_name;
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
-
-			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
 			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			return $parent->load($query, NULL);
