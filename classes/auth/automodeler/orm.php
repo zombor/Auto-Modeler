@@ -179,7 +179,7 @@ class Auth_AutoModeler_ORM extends Auth {
 	 *
 	 * @return  mixed
 	 */
-	public function get_user()
+	public function get_user($default = FALSE)
 	{
 		$user = parent::get_user();
 
