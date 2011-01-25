@@ -205,10 +205,23 @@ class AutoModeler_ORM extends AutoModeler
 		{
 			return $temp->load($query->where(inflector::singular($this->_table_name).'_id', '=', $this->id), NULL);
 		}
-		elseif (in_array($key, $this->_has_many)) // Get a many to many relationship.
+		elseif (
+			// Get a 'has_many' relationship
+			in_array($key, $this->_has_many)
+			// Or find a many to many relationship through 'belongs_to'
+			OR 	(
+				in_array($key, $this->_belongs_to)
+				AND in_array($this->_table_name, $temp->_has_many)
+			)
+		)
 		{
 			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
-			$join_table = $this->_table_name.'_'.$related_table;
+
+			// Figure out many-to-many table
+			$join_table = in_array($key, $this->_has_many)
+				? $this->_table_name.'_'.$related_table
+				: $related_table.'_'.$this->_table_name;
+
 			$this_key = inflector::singular($this->_table_name).'_id';
 			$f_key = inflector::singular($related_table).'_id';
 
