@@ -347,7 +347,13 @@ class AutoModeler_ORM extends AutoModeler
 	 */
 	public function remove($key, $id)
 	{
-		return db::delete($this->_table_name.'_'.AutoModeler::factory(inflector::singular($key))->get_table_name())->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
+		// Figure out many-to-many table
+		$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+		$join_table = in_array(inflector::plural($key), $this->_has_many)
+			? $this->_table_name.'_'.$related_table
+			: $related_table.'_'.$this->_table_name;
+
+		return db::delete($join_table)->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
 	}
 
 	/**
