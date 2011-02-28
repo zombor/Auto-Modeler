@@ -141,15 +141,27 @@ class AutoModeler_ORM_Core extends AutoModeler
 
 		if ($this->_load_with !== NULL)
 		{
+			if (is_array($this->_load_with))
+			{
+				$model = current(array_keys($this->_load_with));
+				$alias = current(array_values($this->_load_with));
+			}
+			else
+			{
+				$model = $this->_load_with;
+				$alias = $this->_load_with;
+			}
+
 			$fields = array();
-			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($this->_load_with)->fields()) as $field)
+			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($model)->fields()) as $field)
 			{
 				$fields[] = array($field, str_replace('.', ':', $field));
 			}
 
-			$query->select_array($fields);
-			$join_table = inflector::plural($this->_load_with);
-			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$this->_load_with.'_id');
+			$query->select_array($fields, TRUE);
+			$join_model = Model::factory($model);
+			$join_table = $join_model->get_table_name();
+			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 		}
 
 		return parent::load($query, $limit);
