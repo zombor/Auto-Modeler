@@ -79,6 +79,18 @@ class AutoModeler_ORM_Core extends AutoModeler
 				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
 			}
 		}
+		elseif (strpos($key, ':')) // Process with
+		{
+			list($table, $field) = explode(':', $key);
+			if ($table == $this->_table_name)
+			{
+				parent::__set($key, $value);
+			}
+			elseif ($field)
+			{
+				$this->_lazy[inflector::singular($table)][$field] = $value;
+			}
+		}
 		else
 		{
 			parent::__set($key, $value);
@@ -153,7 +165,11 @@ class AutoModeler_ORM_Core extends AutoModeler
 			}
 
 			$fields = array();
-			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($model)->fields()) as $field)
+			foreach ($this->fields() as $field)
+			{
+				$fields[] = array($field, str_replace($this->_table_name.'.', '', $field));
+			}
+			foreach (AutoModeler_ORM::factory($model)->fields() as $field)
 			{
 				$fields[] = array($field, str_replace('.', ':', $field));
 			}
