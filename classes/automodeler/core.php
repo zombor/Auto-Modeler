@@ -188,6 +188,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 			return;
 		}
 
+		Log::instance()->add(Log::ERROR, 'Field '.$key.' does not exist in '.get_class($this).'!');
 		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
 	}
 
