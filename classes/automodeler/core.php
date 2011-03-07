@@ -308,15 +308,11 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		$data = $validation instanceof Validation ? $validation->copy($validation->as_array()+$this->_data) : Validation::factory($this->_data);
 
-		foreach ($this->_rules as $field => $rule)
+		$data->bind(':model', $this);
+
+		foreach ($this->_rules as $field => $rules)
 		{
-			foreach ($rule as $key => $value)
-			{
-				if (is_int($key)) // If there's no parameter
-					$data->rule($field, $value);
-				else
-					$data->rule($field, $key, $value);
-			}
+			$data->rules($field, $rules);
 		}
 
 		if ($data->check(TRUE))
