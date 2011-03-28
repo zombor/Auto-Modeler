@@ -9,7 +9,7 @@
 */
 class AutoModeler_Core extends Model_Database implements ArrayAccess
 {
-	const VERSION = '3.7.1';
+	const VERSION = '4.0.0';
 
 	// The database table name
 	protected $_table_name = '';
