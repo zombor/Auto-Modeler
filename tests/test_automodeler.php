@@ -165,6 +165,22 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests that load() results in a model with state = AutoModeler::STATE_LOADED
+	 *
+	 * @return null
+	 */
+	public function test_load_results_in_loaded_models()
+	{
+		$user = new Model_TestUser;
+		$users = $user->load(db::select_array($user->fields())->where('id', '=', '1'), NULL);
+
+		foreach ($users as $user)
+		{
+			$this->assertSame(AutoModeler::STATE_LOADED, $user->state());
+		}
+	}
+
+	/**
 	 * Tests that passing a limit higher than 1 (or null) returns a result set
 	 *
 	 * @return null

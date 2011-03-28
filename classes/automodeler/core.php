@@ -56,6 +56,10 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 		{
 			$this->load(db::select_array($this->fields())->where($this->_table_name.'.id', '=', $id));
 		}
+		elseif ($this->id) // We loaded this via mysql_result_object
+		{
+			$this->_state = AutoModeler::STATE_LOADED;
+		}
 	}
 
 	/**
