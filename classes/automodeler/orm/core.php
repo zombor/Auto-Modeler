@@ -209,7 +209,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 	}
 
 	/**
-	 * Finds many to many relationships
+	 * Finds relations of a has_many relationship
 	 * 
 	 * 	// Finds all roles belonging to a user
 	 * 	$user->find_related('roles');
@@ -331,7 +331,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 	}
 
 	/**
-	 * Removes a relationship if you aren't using innoDB (shame on you!)
+	 * Removes a has_many relationship if you aren't using innoDB (shame on you!)
 	 * 
 	 * Model must have a _has_many relationship with the other model, which is
 	 * passed as the first parameter in plural form without the Model_ prefix.

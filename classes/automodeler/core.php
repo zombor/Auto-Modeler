@@ -43,7 +43,11 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	);
 
 	/**
-	 * Standard constructor, accepts an `id` column to look for
+	 * The constructor enables you to either create an empty object when no
+	 * parameter is passed as $id, or it fetches a row when the parameter
+	 * is passed.
+	 *
+	 * 	$blog_entry = new Blog_Model(5);
 	 *
 	 * @param string $id  an id to search for
 	 *
@@ -158,7 +162,10 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Magic get method, gets model properties from the db
+	 * Retrieve items from the $data array.
+	 *
+	 * 	<h1><?=$blog_entry->title?></h1>
+	 * 	<p><?=$blog_entry->content?></p>
 	 *
 	 * @param string $key the field name to look for
 	 * 
@@ -175,7 +182,11 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Magic get method, set model properties to the model
+	 * Set the items in the $data array.
+	 * 
+	 * 	$blog_entry = new Model_Blog;
+	 * 	$blog_entry->title = 'Demo';
+	 * 	$blog_entry->content = 'My awesome content';
 	 *
 	 * @param string $key   the field name to set
 	 * @param string $value the value to set to
@@ -193,7 +204,6 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 		}
 
 		Log::instance()->add(Log::ERROR, 'Field '.$key.' does not exist in '.get_class($this).'!');
-		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
 	}
 
 	/**
@@ -242,7 +252,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Gets an array version of the model
+	 * Gets an array version of the model.
 	 *
 	 * @return array
 	 */
@@ -262,7 +272,10 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Useful for chaining
+	 * The factory method returns a model instance of the model name provided.
+	 * You can also specify an id to create a specific object. Works similar to
+	 * ORM::factory(). Using this, you can chain methods off models that
+	 * shouldn't be instantiated.
 	 *
 	 * @param string $model the model name
 	 * @param int    $id    an id to pass to the constructor
@@ -276,9 +289,12 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Mass sets object properties
+	 * Mass sets object properties. Never pass $_POST into this method directly.
+	 * Always use something like array_key_intersect() to filter the array.
 	 *
 	 * @param array $data the data to set
+	 * 
+	 * @return null
 	 *
 	 */
 	public function set_fields(array $data)
@@ -290,7 +306,8 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Returns errors for this model
+	 * Behaves the same as the validation object's errors() method.
+	 * Use it to retrieve an array of validation errors from the current object.
 	 *
 	 * @param string $lang the messages file to use
 	 *
@@ -302,11 +319,20 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Determines the validity of this object
+	 * Performs the validation on your model. You can use this before you save
+	 * to ensure the model is valid. save() will call this method internally.
+	 * 
+	 * You can pass an existing validation object into this method.
+	 * 
+	 * Returns either TRUE on success, or an array that contains a html version
+	 * of the errors and the raw errors array from the validation object.
 	 *
-	 * @param mixed $validation a manual validation object to combine the model properties with
+	 * @param mixed $validation a manual validation object to combine the model
+	 *                          properties with
 	 *
-	 * @return mixed
+	 * @return TRUE  on success
+	 * @return array with keys 'string' containing an html list of errors and
+	 *               'errors', the raw errors validation object
 	 */
 	public function is_valid($validation = NULL)
 	{
@@ -333,7 +359,9 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Saves the current object
+	 * Saves the model to your database. If $data['id'] is empty, it will do a
+	 * database INSERT and assign the inserted row id to $data['id'].
+	 * If $data['id'] is not empty, it will do a database UPDATE.
 	 *
 	 * @param mixed $validation a manual validation object to combine the model properties with
 	 *
@@ -366,7 +394,8 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Deletes the current object from the database
+	 * Deletes the current object's associated database row.
+	 * The object will still contain valid data until it is destroyed.
 	 *
 	 * @return integer
 	 */
@@ -383,7 +412,10 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Get a nice array for form::dropdown()
+	 * Returns an associative array, where the keys of the array is set to $key
+	 * column of each row, and the value is set to the $display column.
+	 * You can optionally specify the $query parameter to pass to filter for
+	 * different data.
 	 *
 	 * @param array  $key       the key to use for the array
 	 * @param array  $where     the value to use for the display
@@ -435,7 +467,8 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
-	 * Returns all the columns in this model
+	 * Returns an array of the columns in this object.
+	 * Useful for db::select_array().
 	 *
 	 * @return array
 	 */
