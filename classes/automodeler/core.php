@@ -54,11 +54,15 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 */
 	public function __construct($id = NULL)
 	{
-		parent::__construct();
+		parent::__construct($this->_db);
 
 		if ($id !== NULL)
 		{
-			$this->load(db::select_array(array_keys($this->_data))->where('id', '=', $id));
+			$this->load(db::select_array($this->fields())->where($this->_table_name.'.id', '=', $id));
+		}
+		elseif ($this->id) // We loaded this via mysql_result_object
+		{
+			$this->_state = AutoModeler::STATE_LOADED;
 		}
 	}
 
@@ -145,7 +149,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 *
 	 * @return null
 	 */
-	protected function process_load_state()
+	public function process_load_state()
 	{
 		if ($this->id)
 		{
@@ -199,7 +203,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 			return;
 		}
 
-		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
+		Log::instance()->add(Log::ERROR, 'Field '.$key.' does not exist in '.get_class($this).'!');
 	}
 
 	/**
@@ -211,15 +215,6 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		// Store only information about the object without db property
 		return array_diff(array_keys(get_object_vars($this)), array('_db'));
-	}
-
-	/**
-	 * wakeup method for serialization
-	 *
-	 */
-	public function __wakeup()
-	{
-		$this->_db = Database::instance($this->_db);
 	}
 
 	/**
@@ -341,21 +336,14 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 */
 	public function is_valid($validation = NULL)
 	{
-		$data = $validation instanceof Validate ? $validation->copy($validation->as_array()+$this->_data) : Validate::factory($this->_data);
+		$data = $validation instanceof Validation ? $validation->copy($validation->as_array()+$this->_data) : Validation::factory($this->_data);
 
-		foreach ($this->_rules as $field => $rule)
+		$data->bind(':model', $this);
+
+		foreach ($this->_rules as $field => $rules)
 		{
-			foreach ($rule as $key => $value)
-			{
-				if (is_int($key)) // If there's no parameter
-					$data->rule($field, $value);
-				else
-					$data->rule($field, $key, $value);
-			}
+			$data->rules($field, $rules);
 		}
-
-		foreach ($this->_callbacks as $field => $callback)
-			$data->callback($field, array($this, $callback));
 
 		if ($data->check(TRUE))
 		{

@@ -8,10 +8,15 @@ In order to use AutoModeler with your models, copy the module to your MODPATH, a
 
 	<?php
 
-	class Model_Foo extends AutoModeler {
-	  protected $_table_name = 'foos';
+	class Model_Foo extends AutoModeler
+	{
+		protected $_table_name = 'foos';
 
-	  protected $_data = array('id' => '', 'bar' => '', 'baz' => '');
+		protected $_data = array(
+			'id' => '',
+			'bar' => '',
+			'baz' => '',
+		);
 	}
 
 The $data variable is an associative array containing the table column names and default values for the blogs table in this case.
@@ -34,7 +39,9 @@ Or use set_fields():
 	$foo->set_fields(
 		'bar' => 'foobar',
 		'baz' => 'bazbar',
-	)
+	);
+
+Note that if you use set_fields() from $_POST, make sure you filter the keys. You almost never want to assign something like `id` via set_fields(), for instance.
 
 ### Save the model
 

@@ -46,8 +46,6 @@ class AutoModeler_ORM_Core extends AutoModeler
 
 	/**
 	 * Magic set method, can set many to many relationships
-	 * 
-	 * 	$blog->foos = 1; // Relates foo id=1 to the $blog model
 	 *
 	 * @param string $key the key to set
 	 * @param mixed  $value the value to set the key to
@@ -79,6 +77,18 @@ class AutoModeler_ORM_Core extends AutoModeler
 			{
 				// Insert
 				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
+			}
+		}
+		elseif (strpos($key, ':')) // Process with
+		{
+			list($table, $field) = explode(':', $key);
+			if ($table == $this->_table_name)
+			{
+				parent::__set($key, $value);
+			}
+			elseif ($field)
+			{
+				$this->_lazy[inflector::singular($table)][$field] = $value;
 			}
 		}
 		else
@@ -143,15 +153,31 @@ class AutoModeler_ORM_Core extends AutoModeler
 
 		if ($this->_load_with !== NULL)
 		{
+			if (is_array($this->_load_with))
+			{
+				$model = current(array_keys($this->_load_with));
+				$alias = current(array_values($this->_load_with));
+			}
+			else
+			{
+				$model = $this->_load_with;
+				$alias = $this->_load_with;
+			}
+
 			$fields = array();
-			foreach (array_merge($this->fields(), AutoModeler_ORM::factory($this->_load_with)->fields()) as $field)
+			foreach ($this->fields() as $field)
+			{
+				$fields[] = array($field, str_replace($this->_table_name.'.', '', $field));
+			}
+			foreach (AutoModeler_ORM::factory($model)->fields() as $field)
 			{
 				$fields[] = array($field, str_replace('.', ':', $field));
 			}
 
-			$query->select_array($fields);
-			$join_table = inflector::plural($this->_load_with);
-			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$this->_load_with.'_id');
+			$query->select_array($fields, TRUE);
+			$join_model = Model::factory($model);
+			$join_table = $join_model->get_table_name();
+			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 		}
 
 		return parent::load($query, $limit);
@@ -214,6 +240,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 			$this_key = inflector::singular($this->_table_name).'_id';
 			$f_key = inflector::singular($related_table).'_id';
 
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
+
 			$query = $query->from($related_table)->join($join_table)->on($join_table.'.'.$f_key, '=', $related_table.'.id');
 			$query->where($join_table.'.'.$this_key, '=', $this->_data['id']);
 			return $temp->load($query, NULL);
@@ -238,6 +266,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 	public function find_parent($key, Database_Query_Builder_Select $query = NULL)
 	{
 		$parent = AutoModeler::factory(inflector::singular($key));
+		$columns = $parent->fields();
 
 		if ( ! $query)
 		{
@@ -255,7 +284,9 @@ class AutoModeler_ORM_Core extends AutoModeler
 			$f_key = inflector::singular($this->_table_name).'_id';
 			$this_key = inflector::singular($related_table).'_id';
 
-			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			$columns = AutoModeler::factory(inflector::singular($key))->fields();
+
+			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $related_table.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			return $parent->load($query, NULL);
 		}
 		else
