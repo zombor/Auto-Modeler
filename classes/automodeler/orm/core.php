@@ -286,7 +286,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 
 			$columns = AutoModeler::factory(inflector::singular($key))->fields();
 
-			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $key.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
+			$query = $query->join($join_table)->on($join_table.'.'.$this_key, '=', $related_table.'.id')->from($related_table)->where($join_table.'.'.$f_key, '=', $this->_data['id']);
 			return $parent->load($query, NULL);
 		}
 		else
