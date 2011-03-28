@@ -18,8 +18,14 @@ class Model_TestUser extends AutoModeler {
 	                         'last_login' => '',
 	                         'logins' => '');
 
-	protected $_rules = array('username' => array('not_empty'),
-	                          'email' => array('email'));
+	protected $_rules = array(
+		'username' => array(
+			array('not_empty'),
+		),
+		'email' => array(
+			array('email'),
+		)
+	);
 
 	/**
 	 * overload __set() to hash a password
