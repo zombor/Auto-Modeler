@@ -37,7 +37,7 @@ class Auth_AutoModeler_ORM extends Auth {
 					{
 						if ( ! is_numeric($_role))
 						{
-							$_role = AutoModeler_ORM::factory('role')->load(db::select()->where('name', '=', $role))->id;
+							$_role = AutoModeler_ORM::factory('role')->load(db::select()->where('name', '=', $_role))->id;
 						}
 
 						// If the user doesn't have the role
