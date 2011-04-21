@@ -33,7 +33,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
 			{
 				$model = AutoModeler::factory($key);
-				$model->_data = $this->_lazy[$key];
+				$model->process_load($this->_lazy[$key]);
+				$model->process_load_state();
 				return $model;
 			}
 
