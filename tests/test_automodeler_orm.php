@@ -20,7 +20,7 @@
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
  * 
- * CREATE TABLE `foobars` (
+ * CREATE TABLE `foos` (
  * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
@@ -134,6 +134,18 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests __get() with a relationship
+	 *
+	 * @return null
+	 */
+	public function test_get()
+	{
+		$user = new Model_ORMUser(1);
+		$this->assertInstanceOf('Model_Foo', $user->foo);
+		$this->assertSame(AutoModeler::STATE_LOADED, $user->foo->state());
+	}
+
+	/**
 	 * @dataProvider provider_find_parent
 	 *
 	 * @covers AutoModeler_ORM::find_parent
@@ -165,6 +177,16 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected_count, count($model->find_parent($related_model, $where)));
 	}
 
+	public function provider_find_related()
+	{
+		return array(
+			array('Model_ORMUser', 1, 'testroles', 2),
+			array('Model_ORMUser', 2, 'testroles', 1),
+			array('Model_Foo', 1, 'ormusers', 3),
+			array('Model_ORMUser', 1, 'foos', 1),
+		);
+	}
+
 	/**
 	 * Tests that finding relationships that don't exist throws an exception
 	 * 
@@ -180,16 +202,6 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$this->assertSame($expected_count, count($model->find_parent($related_model)));
 	}
 
-	public function provider_find_related()
-	{
-		return array(
-			array('Model_ORMUser', 1, 'testroles', 2),
-			array('Model_ORMUser', 2, 'testroles', 1),
-			array('Model_Foobar', 1, 'ormusers', 3),
-			array('Model_ORMUser', 1, 'foobars', 1),
-		);
-	}
-
 	/**
 	 * @dataProvider provider_find_related
 	 *
@@ -199,7 +211,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	{
 		$model = new $model_name($model_id);
 
-		$this->assertSame($expected_count, count($model->find_related($related_model)));
+		$related = $model->find_related($related_model);
+
+		$this->assertSame($expected_count, count($related));
+		$this->assertSame(AutoModeler::STATE_LOADED, $related->current()->state());
 	}
 
 	public function provider_find_related_where()
@@ -274,14 +289,17 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 		$q_before = $this->getQueries();
 
 		$user = new Model_ORMUser();
-		$user->with('foobar')->load(db::select()->where('ormusers.id', '=', 1));
+		$user->with('foo')->load(db::select()->where('ormusers.id', '=', 1));
 
 		// There should only be one query
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
 		$this->assertTrue($user instanceof Model_ORMUser);
 
-		$this->assertTrue($user->foobar instanceof Model_Foobar);
+		$this->assertTrue($user->foo instanceof Model_Foo);
 		$this->assertQueryCountIncrease(1, $q_before, $this->getQueries());
+
+		// Make sure the load()ed model is loaded()
+		$this->assertSame(AutoModeler::STATE_LOADED, $user->foo->state());
 	}
 
 	public function provider_remove()

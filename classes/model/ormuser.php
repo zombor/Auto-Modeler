@@ -17,7 +17,7 @@ class Model_ORMUser extends AutoModeler_ORM {
 	                         'email' => '',
 	                         'last_login' => '',
 	                         'logins' => '',
-	                         'foobar_id' => NULL);
+	                         'foo_id' => NULL);
 
 	protected $_rules = array(
 		'username' => array(

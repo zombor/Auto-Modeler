@@ -1,10 +1,10 @@
 <dataset>
-	<ormusers id="1" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="30" foobar_id="1" />
-	<ormusers id="2" username="sambar" password="barsam" email="sam@bar.com" last_login="67890" logins="10" foobar_id="1" />
-	<ormusers id="3" username="maxbar" password="maxbar" email="max@bar.com" last_login="54321" logins="20" foobar_id="1" />
+	<ormusers id="1" username="foobar" password="barfoo" email="foo@bar.com" last_login="12345" logins="30" foo_id="1" />
+	<ormusers id="2" username="sambar" password="barsam" email="sam@bar.com" last_login="67890" logins="10" foo_id="1" />
+	<ormusers id="3" username="maxbar" password="maxbar" email="max@bar.com" last_login="54321" logins="20" foo_id="1" />
 	<testroles id="1" name="Login" />
 	<testroles id="2" name="Admin" />
-	<foobars id="1" name="Foobar!" ormuser_id="1" />
+	<foos id="1" name="Foobar!" ormuser_id="1" />
 	<ormusers_testroles id="1" ormuser_id="1" testrole_id="1" />
 	<ormusers_testroles id="2" ormuser_id="1" testrole_id="2" />
 	<ormusers_testroles id="3" ormuser_id="2" testrole_id="1" />
