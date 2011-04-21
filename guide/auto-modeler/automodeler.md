@@ -4,7 +4,7 @@ Auto_Modeler is an extension to your models that enables rapid application devel
 
 ## Setup
 
-In order to use AutoModeler with your models, copy the module to your MODPATH, and add it in your bootstrap.php file. Then you need to add the following to your model you wish to use it with:
+In order to use AutoModeler with your models, copy the module to your MODPATH, and add it in your bootstrap.php file above the Database module. Then you need to add the following to your model you wish to use it with:
 
 	<?php
 
@@ -19,7 +19,7 @@ In order to use AutoModeler with your models, copy the module to your MODPATH, a
 		);
 	}
 
-The $data variable is an associative array containing the table column names and default values for the blogs table in this case.
+The $_data variable is an associative array containing the table column names and default values for the blogs table in this case.
 
 ## Working with models
 
@@ -69,8 +69,8 @@ AutoModeler supports in-model validation. You can defines your field rules in yo
 
 Create a $_rules array in your model. They key is the field name, and the value is an array of rules.
 
-    $_rules = array('name' => array('required', 'alpha_dash', 'min_length' => array('2')),
-                   'address' => array('required'));
+    $_rules = array('name' => array(array('required', 'alpha_dash', 'min_length' => array('2'))),
+                   'address' => array(array('required')));
 
 Now, when you save() your model, it will check the "name" and "address" fields with the rules provided. If validation fails, the library will throw an exception containing the failed error messages. You can use a try/catch block to detect failing validation:
 
@@ -86,7 +86,7 @@ Now, when you save() your model, it will check the "name" and "address" fields w
 
 	        if ($_POST) // Save the data
 	        {
-	            $client->set_fields(array_intersect_key(array('name', 'address'), $_POST));
+	            $client->set_fields(Arr::extract($_POST, array('name', 'address')));
 
 	            try
 	            {
@@ -105,7 +105,7 @@ In your view, you can simply echo the $errors variable to get a nice list of err
 
 ### Passing pre-built validations
 
-For more advanced validations, such as password verifications that don't directly belong to the model, you can pass a pre-built validation object to save() and validate() and it will combine the validation objects. Below is an example:
+For more advanced validations, such as password verifications that don't directly belong to the model, you can pass a pre-built validation object to save() and is_valid() and it will combine the validation objects. Below is an example:
 
 	<?php
 
@@ -120,13 +120,13 @@ For more advanced validations, such as password verifications that don't directl
 			               'repeat_password' => 'tsting');
 
 			$validation = new Validation($_POST);
-			$validation->add_rules('password', 'matches[repeat_password]');
+			$validation->rule('password', 'matches', array(':validation', 'password', 'repeat_password'));
 			try
 			{
 				$user->set_fields($_POST);
 				$user->save($validation);
 			}
-			catch (Auto_Modeler_Exception $e)
+			catch (AutoModeler_Exception $e)
 			{
 				echo $e;
 				echo Kohana::debug($e->errors);
