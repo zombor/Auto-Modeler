@@ -194,6 +194,8 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		$result = Model::factory('testuser')->load(NULL, 2);
 		$this->assertTrue($result instanceof Database_Result);
 		$this->assertTrue(count($result) == 2);
+
+		$this->assertSame(AutoModeler::STATE_LOADED, $result->current()->state());
 	}
 
 	/**

@@ -10,7 +10,7 @@
 
 class Model_Foo extends AutoModeler_ORM {
 
-	protected $_table_name = 'foobars';
+	protected $_table_name = 'foos';
 
 	protected $_data = array(
 		'id' => '',

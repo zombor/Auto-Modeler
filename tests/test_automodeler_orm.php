@@ -20,7 +20,7 @@
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
  * 
- * CREATE TABLE `foobars` (
+ * CREATE TABLE `foos` (
  * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
  * `name` VARCHAR( 50 ) NOT NULL
  * ) ENGINE = INNODB;
@@ -134,6 +134,18 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	}
 
 	/**
+	 * Tests __get() with a relationship
+	 *
+	 * @return null
+	 */
+	public function test_get()
+	{
+		$user = new Model_ORMUser(1);
+		$this->assertInstanceOf('Model_Foo', $user->foo);
+		$this->assertSame(AutoModeler::STATE_LOADED, $user->foo->state());
+	}
+
+	/**
 	 * @dataProvider provider_find_parent
 	 *
 	 * @covers AutoModeler_ORM::find_parent
@@ -199,7 +211,10 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 	{
 		$model = new $model_name($model_id);
 
-		$this->assertSame($expected_count, count($model->find_related($related_model)));
+		$related = $model->find_related($related_model);
+
+		$this->assertSame($expected_count, count($related));
+		$this->assertSame(AutoModeler::STATE_LOADED, $related->current()->state());
 	}
 
 	public function provider_find_related_where()
