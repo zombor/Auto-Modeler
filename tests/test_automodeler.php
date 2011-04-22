@@ -211,10 +211,11 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 		try
 		{
 			$user->delete();
+			$this->fail();
 		}
 		catch (AutoModeler_Exception $e)
 		{
-			$this->assertSame('Cannot delete a non-saved model Model_TestUser!', $e->getMessage());
+			$this->assertSame('Cannot delete a non-loaded model Model_TestUser!', $e->getMessage());
 		}
 	}
 

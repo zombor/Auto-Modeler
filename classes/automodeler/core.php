@@ -411,7 +411,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 */
 	public function delete()
 	{
-		if (AutoModeler::STATE_LOADED)
+		if ($this->loaded())
 		{
 			$this->_state = AutoModeler::STATE_DELETED;
 
