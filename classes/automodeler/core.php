@@ -201,7 +201,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		if (array_key_exists($key, $this->_data))
 		{
-			if($value != $this->_data[$key])
+			if($value !== $this->_data[$key])
 			{
 				$this->_data[$key] = $value;
 				$this->_changed[$key] = true;
