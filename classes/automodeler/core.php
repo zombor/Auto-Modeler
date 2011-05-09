@@ -199,11 +199,15 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 */
 	public function __set($key, $value)
 	{
-		if (array_key_exists($key, $this->_data) && $value != $this->_data[$key])
+		if (array_key_exists($key, $this->_data))
 		{
-			$this->_data[$key] = $value;
-			$this->_changed[$key] = true;
-			$this->_validated = FALSE;
+			if($value != $this->_data[$key])
+			{
+				$this->_data[$key] = $value;
+				$this->_changed[$key] = true;
+				$this->_validated = FALSE;
+			}
+
 			return;
 		}
 
