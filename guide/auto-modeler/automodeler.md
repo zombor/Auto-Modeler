@@ -19,7 +19,7 @@ In order to use AutoModeler with your models, copy the module to your MODPATH, a
 		);
 	}
 
-The $_data variable is an associative array containing the table column names and default values for the blogs table in this case.
+The $_data variable is an associative array containing the table column names and default values for the 'foos' table in this case.
 
 ## Working with models
 
