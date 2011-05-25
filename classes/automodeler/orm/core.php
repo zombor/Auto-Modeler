@@ -77,7 +77,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 			if ( ! count(db::select('*')->from($related_table.'_'.$this->_table_name)->where($this_key, '=', $value)->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
 			{
 				// Insert
-				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
+				db::insert($related_table.'_'.$this->_table_name)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
 			}
 		}
 		elseif (strpos($key, ':')) // Process with
