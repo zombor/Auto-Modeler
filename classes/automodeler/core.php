@@ -422,6 +422,21 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	}
 
 	/**
+	 * Reloads the current object's values from the database.
+	 *
+	 * @return $this
+	 */
+	public function reload()
+	{
+		if ($this->loaded())
+		{
+			return $this->load(db::select_array($this->fields())->where('id', '=', $this->_data['id']));
+		}
+
+		throw new AutoModeler_Exception('Cannot reload a non-loaded model '.get_class($this).'.', array(), array());
+	}
+
+	/**
 	 * Returns an associative array, where the keys of the array is set to $key
 	 * column of each row, and the value is set to the $display column.
 	 * You can optionally specify the $query parameter to pass to filter for
