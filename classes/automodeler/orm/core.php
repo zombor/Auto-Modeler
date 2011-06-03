@@ -13,7 +13,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 	protected $_has_many = array();
 	protected $_belongs_to = array();
 
-	protected $_load_with = NULL;
+	protected $_load_with = array();
 
 	// Model data to lazy load
 	protected $_lazy = array();
@@ -148,7 +148,12 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 */
 	public function with($model)
 	{
-		$this->_load_with = $model;
+		$this->_load_with = (array)$this->_load_with;
+
+		if(!in_array($model, $this->_load_with))
+		{
+			$this->_load_with = array_merge($this->_load_with, (array)$model);
+		}
 		return $this;
 	}
 
@@ -165,33 +170,27 @@ class AutoModeler_ORM_Core extends AutoModeler
 			$query = db::select_array(array_keys($this->_data));
 		}
 
-		if ($this->_load_with !== NULL)
+		$this->_load_with = (array)$this->_load_with;
+		if (count($this->_load_with))
 		{
-			if (is_array($this->_load_with))
-			{
-				$model = current(array_keys($this->_load_with));
-				$alias = current(array_values($this->_load_with));
-			}
-			else
-			{
-				$model = $this->_load_with;
-				$alias = $this->_load_with;
-			}
-
 			$fields = array();
 			foreach ($this->fields() as $field)
 			{
 				$fields[] = array($field, str_replace($this->_table_name.'.', '', $field));
 			}
-			foreach (AutoModeler_ORM::factory($model)->fields() as $field)
+			foreach($this->_load_with as $k => $v)
 			{
-				$fields[] = array($field, str_replace('.', ':', $field));
+				$alias = $v;
+				$model = is_numeric($k)?$v:$k;
+				foreach (AutoModeler_ORM::factory($model)->fields() as $field)
+				{
+					$fields[] = array($field, str_replace('.', ':', $field));
+				}
+				$join_model = Model::factory($model);
+				$join_table = $join_model->get_table_name();
+				$query->join($join_table, 'LEFT')->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 			}
-
 			$query->select_array($fields, TRUE);
-			$join_model = Model::factory($model);
-			$join_table = $join_model->get_table_name();
-			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 		}
 
 		return parent::load($query, $limit);
