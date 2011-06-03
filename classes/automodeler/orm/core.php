@@ -31,15 +31,21 @@ class AutoModeler_ORM_Core extends AutoModeler
 		if (isset($this->_data[$key.'_id']))
 		{
 			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
-			{
-				$model = AutoModeler::factory($key);
-				$model->process_load($this->_lazy[$key]);
-				$model->process_load_state();
-				return $model;
-			}
+            {
+                if(!($this->_lazy[$key] instanceof AutoModeler_ORM))
+                {
+                    $model = AutoModeler::factory($key);
+                    $model->process_load($this->_lazy[$key]);
+                    $model->process_load_state();
+                    $this->_lazy[$key] = $model;
+                }
+            }
+            else
+            {
+                $this->_lazy[$key] = AutoModeler::factory($key, $this->_data[$key.'_id']);
+            }
 
-			// Get the row from the foreign table
-			return AutoModeler::factory($key, $this->_data[$key.'_id']);
+            return $this->_lazy[$key];
 		}
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
@@ -103,30 +109,37 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 *
 	 * @return null
 	 */
-	protected function process_load($data)
-	{
-		$parsed_data = array();
-		foreach ($data as $key => $value)
-		{
-			if (strpos($key, ':'))
-			{
-				list($table, $field) = explode(':', $key);
-				if ($table == $this->_table_name)
-				{
-					$parsed_data[$field] = $value;
-				}
-				elseif ($field)
-				{
-					$this->_lazy[inflector::singular($table)][$field] = $value;
-				}
-			}
-			else
-			{
-				$parsed_data[$key] = $value;
-			}
-		}
-		$this->_data = $parsed_data;
-	}
+    protected function process_load($data)
+    {
+        $parsed_data = array();
+        $lazy_data = array();
+
+        foreach ($data as $key => $value)
+        {
+            if (strpos($key, ':'))
+            {
+                list($table, $field) = explode(':', $key);
+                if ($table == $this->_table_name)
+                {
+                    $parsed_data[$field] = $value;
+                }
+                elseif ($field)
+                {
+                    $lazy_data[inflector::singular($table)][$field] = $value;
+                }
+            }
+            else
+            {
+                $parsed_data[$key] = $value;
+            }
+        }
+        $this->_data = $parsed_data;
+        foreach($lazy_data as $table => $fields)
+        {
+            if(!is_null($fields['id'])) $this->_lazy[$table] = $fields;
+        }
+
+    }
 
 	/**
 	 * Loads a model with a different one
