@@ -404,10 +404,11 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 			}
 			else // Do an insert
 			{
-				$columns = array_keys($this->_data);
+				$data = array_filter($this->_data, function ($e) { return !is_null($e); });
+				$columns = array_keys($data);
 				$id = db::insert($this->_table_name)
 						->columns($columns)
-						->values($this->_data)->execute($this->_db);
+						->values($data)->execute($this->_db);
 
 				$this->state(AutoModeler::STATE_LOADED);
 
