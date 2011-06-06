@@ -346,7 +346,9 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 */
 	public function remove($key, $id)
 	{
-		return db::delete($this->_table_name.'_'.AutoModeler::factory(inflector::singular($key))->get_table_name())->where($key.'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
+		$related = AutoModeler::factory(inflector::singular($key));
+		
+		return db::delete($this->_table_name.'_'.$related->get_table_name())->where(inflector::singular($related->get_table_name()).'_id', '=', $id)->where(inflector::singular($this->_table_name).'_id', '=', $this->_data['id'])->execute($this->_db);
 	}
 
 	/**
