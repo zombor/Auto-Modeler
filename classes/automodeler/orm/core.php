@@ -55,46 +55,94 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 */
 	public function __set($key, $value)
 	{
-		if (in_array($key, $this->_has_many))
+		if (is_array($value))
 		{
-			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
-			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($related_table).'_id';
+			if (in_array($key, $this->_has_many))
+			{
+				$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+				$this_key = inflector::singular($this->_table_name).'_id';
+				$f_key = inflector::singular($related_table).'_id';
+				
+				$columns = array($this_key);
+				$values  = array($this->_data['id']);
+				foreach ($value as $column => $val)
+				{
+					$columns[] = $column;
+					$values[]  = $val;
+				}
 
-			// See if this is already in the join table
-			if ( ! count(db::select('*')->from($this->_table_name.'_'.$related_table)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
-			{
-				// Insert
-				db::insert($this->_table_name.'_'.$related_table)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
+				// See if this is already in the join table
+				if ( ! count(db::select('*')->from($this->_table_name.'_'.$related_table)->where($f_key, '=', $value[$f_key])->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
+				{
+					// Insert
+					db::insert($this->_table_name.'_'.$related_table)->columns($columns)->values($values)->execute($this->_db);
+				}
 			}
-		}
-		else if (in_array($key, $this->_belongs_to))
-		{
-			$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
-			$this_key = inflector::singular($this->_table_name).'_id';
-			$f_key = inflector::singular($related_table).'_id';
-			// See if this is already in the join table
-			if ( ! count(db::select('*')->from($related_table.'_'.$this->_table_name)->where($this_key, '=', $value)->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
+			else if (in_array($key, $this->_belongs_to))
 			{
-				// Insert
-				db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
-			}
-		}
-		elseif (strpos($key, ':')) // Process with
-		{
-			list($table, $field) = explode(':', $key);
-			if ($table == $this->_table_name)
-			{
-				parent::__set($key, $value);
-			}
-			elseif ($field)
-			{
-				$this->_lazy[inflector::singular($table)][$field] = $value;
+				$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+				$this_key = inflector::singular($this->_table_name).'_id';
+				$f_key = inflector::singular($related_table).'_id';
+
+				$columns = array($this_key);
+				$values  = array($this->_data['id']);
+				foreach ($value as $column => $val)
+				{
+					$columns[] = $column;
+					$values[]  = $val;
+				}
+
+				// See if this is already in the join table
+				if ( ! count(db::select('*')->from($related_table.'_'.$this->_table_name)->where($this_key, '=', $value[$f_key])->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
+				{
+					// Insert
+					db::insert($related_table.'_'.$this->_table_name)->columns($columns)->values($values)->execute($this->_db);
+				}
 			}
 		}
 		else
 		{
-			parent::__set($key, $value);
+			if (in_array($key, $this->_has_many))
+			{
+				$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+				$this_key = inflector::singular($this->_table_name).'_id';
+				$f_key = inflector::singular($related_table).'_id';
+
+				// See if this is already in the join table
+				if ( ! count(db::select('*')->from($this->_table_name.'_'.$related_table)->where($f_key, '=', $value)->where($this_key, '=', $this->_data['id'])->execute($this->_db)))
+				{
+					// Insert
+					db::insert($this->_table_name.'_'.$related_table)->columns(array($f_key, $this_key))->values(array($value, $this->_data['id']))->execute($this->_db);
+				}
+			}
+			else if (in_array($key, $this->_belongs_to))
+			{
+				$related_table = AutoModeler::factory(inflector::singular($key))->get_table_name();
+				$this_key = inflector::singular($this->_table_name).'_id';
+				$f_key = inflector::singular($related_table).'_id';
+				// See if this is already in the join table
+				if ( ! count(db::select('*')->from($related_table.'_'.$this->_table_name)->where($this_key, '=', $value)->where($f_key, '=', $this->_data['id'])->execute($this->_db)))
+				{
+					// Insert
+					db::insert($related_table.'_'.$this->_table_name, array($f_key => $value, $this_key => $this->_data['id']))->execute($this->_db);
+				}
+			}
+			elseif (strpos($key, ':')) // Process with
+			{
+				list($table, $field) = explode(':', $key);
+				if ($table == $this->_table_name)
+				{
+					parent::__set($key, $value);
+				}
+				elseif ($field)
+				{
+					$this->_lazy[inflector::singular($table)][$field] = $value;
+				}
+			}
+			else
+			{
+				parent::__set($key, $value);
+			}
 		}
 	}
 
