@@ -28,7 +28,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 	public function __get($key)
 	{
 		// See if we are requesting a foreign key
-		if (isset($this->_data[$key.'_id']))
+		//if (isset($this->_data[$key.'_id']))
+		if(array_key_exists($key.'_id', $this->_data)) 
 		{
 			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
             {
