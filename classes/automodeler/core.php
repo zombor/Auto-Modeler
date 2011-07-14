@@ -198,7 +198,17 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		if (array_key_exists($key, $this->_data))
 		{
-			$this->_data[$key] = $value;
+			// We support custom setter methods, useful for filters, etc
+			if (method_exists($this, 'set_'.$key))
+			{
+				$method = 'set_'.$key;
+				$this->$method($value);
+			}
+			else
+			{
+				$this->_data[$key] = $value;
+			}
+
 			$this->_validated = FALSE;
 			return;
 		}

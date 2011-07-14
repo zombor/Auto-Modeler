@@ -146,3 +146,20 @@ For more advanced validations, such as password verifications that don't directl
 	}
 
 If you run this, you will get an error about the passwords not matching. You can take the example from here to create advanced validation schemes for your models.
+
+## Custom Field Setters
+
+Auto-Modeler supports customized setter methods, which you can use for things like filters. This is an alternative to overloading `__set()`. For example, a common use case is hashing a password:
+
+	protected $_data = array(
+		'id' => '',
+		'username' => '',
+		'password' => '',
+	);
+
+	public function set_password($value)
+	{
+		$this->_data['password'] = Auth::hash($value);
+	}
+
+Define your method as "set_" with your field name prefixed.
