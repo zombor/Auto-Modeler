@@ -388,4 +388,58 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 
 			$this->assertSame($model->username, 'foobar');
 		}
+		
+	public function provider_set_has_many()
+	{
+		return array(
+			array('Model_ORMUser', 3, 'testroles', 2),
+			array('Model_ORMUser', 2, 'testroles', 1),
+		);
+	}
+
+	/**
+	 * Tests creating Many to Many relationships with __set().
+	 *
+	 * @dataProvider provider_set_has_many
+	 *
+	 * @covers AutoModeler_ORM::__set
+	 * @author Jonathan Davis
+	 */
+	public function test_set_has_many($model_name, $model_id, $related_model, $related_id)
+	{
+		$model = new $model_name($model_id);
+
+		// Remove relationship if it alread exists.
+		$model->remove($related_model, $related_id);
+
+		$model->{$related_model} = $related_id;
+
+		$this->assertTrue($model->has($related_model, $related_id));
+	}
+
+	public function provider_set_belongs_to()
+	{
+		return array(
+			array('Model_TestRole', 1, 'ormusers', 3),
+			array('Model_TestRole', 2, 'ormusers', 2),
+		);
+	}
+
+	/**
+	 * Tests creating Belongs To relationships with __set().
+	 *
+	 * @dataProvider provider_set_belongs_to
+	 *
+	 * @covers AutoModeler_ORM::__set
+	 * @author Jonathan Davis
+	 */
+	public function test_set_belongs_to($model_name, $model_id, $parent_model, $parent_id)
+	{
+		$model = new $model_name($model_id);
+		$model->remove_parent($parent_model);
+
+		$model->{$parent_model} = $parent_id;
+
+		$this->assertSame(1, count($model->find_parent($parent_model)));
+	}
 }
