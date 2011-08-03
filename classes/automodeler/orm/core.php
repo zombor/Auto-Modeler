@@ -101,6 +101,10 @@ class AutoModeler_ORM_Core extends AutoModeler
 		}
 		else
 		{
+			if(array_key_exists($key.'_id', $this->_data) && isset($this->_lazy[$key]) && $value !== $this->_data[$key]) {
+				unset($this->_lazy[$key]);
+			}
+
 			parent::__set($key, $value);
 		}
 	}
