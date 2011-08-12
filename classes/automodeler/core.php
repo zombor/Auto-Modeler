@@ -406,7 +406,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 
 				$this->state(AutoModeler::STATE_LOADED);
 
-				return ($this->_data['id'] = $id[0]);
+				return $this->_data['id'] ? $this->_data['id'] : ($this->_data['id'] = $id[0]);
 			}
 		}
 
