@@ -188,6 +188,10 @@ class Auth_AutoModeler_ORM extends Auth {
 			// check for "remembered" login
 			$user = $this->auto_login();
 		}
+		else
+		{
+			$user = new Model_User($user);
+		}
 
 		return $user;
 	}
@@ -255,7 +259,7 @@ class Auth_AutoModeler_ORM extends Auth {
 	{
 		$user->complete_login();
 
-		return parent::complete_login($user);
+		return parent::complete_login($user->id);
 	}
 
 	/**
