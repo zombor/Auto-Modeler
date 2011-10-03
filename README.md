@@ -2,7 +2,7 @@
 
 ## What does it do?
 
-This Kohana module allows you to easily access and model your database and it's relationships.
+This Kohana module allows you to easily access and model your database and its relationships.
 
 ## How does it work?
 
