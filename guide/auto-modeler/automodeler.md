@@ -51,7 +51,7 @@ Note that if you use set_fields() from $_POST, make sure you filter the keys. Yo
 
 	$foo = new Model_Foo(1);
 
-## Update it's values
+## Update its values
 
 	$foo->bar = 'changed';
 
