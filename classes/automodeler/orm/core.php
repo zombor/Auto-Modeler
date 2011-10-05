@@ -41,8 +41,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 			// Get the row from the foreign table
 			return AutoModeler::factory($key, $this->_data[$key.'_id']);
 		}
-		else if (isset($this->_data[$key]))
-			return $this->_data[$key];
+
+		return parent::__get($key);
 	}
 
 	/**
