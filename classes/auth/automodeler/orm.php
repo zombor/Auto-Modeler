@@ -86,7 +86,7 @@ class Auth_AutoModeler_ORM extends Auth {
 		}
 
 		// If the passwords match, perform a login
-		if ($user->has('roles', 1) AND $user->password === $password)
+		if ($user->can_login() AND $user->password === $this->hash($password, Auth::$salt))
 		{
 			if ($remember === TRUE)
 			{
