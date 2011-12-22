@@ -59,6 +59,14 @@ Note that if you use set_fields() from $_POST, make sure you filter the keys. Yo
 
 	$foo->save();
 
+## Loading an arbitrary row
+
+	$foo = Model::factory('foo')->load(db::select()->where('bar', '=', 'foobar'));
+
+## Get many results back
+
+	$foos = Model::factory('foo')->load(db::select()->where('bar', 'IN', array(1,2,3,4)), NULL);
+
 ## ArrayAccess
 
 You can also access your model fields via the ArrayAccess interface: $user['username']

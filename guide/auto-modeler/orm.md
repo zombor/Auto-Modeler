@@ -36,7 +36,7 @@ This is all the setup!
 
 	$foo = new Model_Foo(1);
 
-### Relate foo to blog
+### Relate foo to blog (1:M)
 
 	$blog->foo_id = $foo->id;
 	$blog->save();
@@ -53,7 +53,7 @@ This is all the setup!
 
 	$car = new Model_Car(1);
 
-### Relate them
+### Relate them (M:M)
 
 	$blog->cars = $car->id; // Works right away, no need to save()
 
@@ -68,7 +68,7 @@ AutoModeler_ORM comes with robust support for load()ing relationships with() the
 	$user = new Model_User();
 	$user->with('foobar')->load(db::select()->where('users.id', '=', 1));
 
-Now when you call $user->foobar, it will not run an additional query. You must use with() alongside of load().
+Now when you call `$user->foobar`, it will not run an additional query. You must use with() alongside of load().
 
 If you'd like a model to always load with another model, you can manually specify the $_load_with variable in the model:
 
