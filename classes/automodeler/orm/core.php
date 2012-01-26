@@ -185,8 +185,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 			}
 			foreach($this->_load_with as $k => $v)
 			{
-				$alias = $v;
-				$model = is_numeric($k)?$v:$k;
+				$model = $v;
+				$alias = is_numeric($k)?$v:$k;
 				foreach (AutoModeler_ORM::factory($model)->fields() as $field)
 				{
 					$fields[] = array($field, str_replace('.', ':', $field));
