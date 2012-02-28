@@ -86,4 +86,36 @@ class AutoModeler_DAO_Database
 
 		return $count;
 	}
+
+	/**
+	 * Deletes a persited model from the data store
+	 *
+	 * @param AutoModeler_Model             $model the model to delete
+	 * @param Database_Query_Builder_Delete $qb    optional qb object for mocking
+	 */
+	public function delete(AutoModeler_Model $model, Database_Query_Builder_delete $qb = NULL)
+	{
+		if (AutoModeler_Model::STATE_LOADED != $model->state())
+		{
+			throw new AutoModeler_Exception('Can\'t delete a non-loaded model!');
+		}
+
+		$data = $model->as_array();
+
+		if (NULL == $qb)
+		{
+			$qb = new Database_Query_Builder_Delete($this->_table_name);
+		}
+
+		$qb->where('id', '=', $data['id']);
+		$count = $qb->execute($this->_db);
+
+		if (1 == $count)
+		{
+			$model->state(AutoModeler_Model::STATE_NEW);
+			$model->id = NULL;
+		}
+
+		return $model;
+	}
 }
