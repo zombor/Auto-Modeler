@@ -28,7 +28,8 @@ class AutoModeler_DAO_Database
 	/**
 	 * Saves a model object to the data store
 	 *
-	 * @param AutoModeler_Model $model the model to save
+	 * @param AutoModeler_Model             $model the model to save
+	 * @param Database_Query_Builder_Insert $qb    a qb object for mocking
 	 *
 	 */
 	public function create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
@@ -54,5 +55,35 @@ class AutoModeler_DAO_Database
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
 		return $model;
+	}
+
+	/**
+	 * Persists a loaded model to the data store
+	 *
+	 * @param AutoModeler_Model             $model the model to save
+	 * @param Database_Query_Builder_Update $qb    optional qb object for mocks
+	 *
+	 * @return the count of how many rows were updated
+	 */
+	public function update(AutoModeler_Model $model, Database_Query_Builder_Update $qb = NULL)
+	{
+		if (AutoModeler_Model::STATE_LOADED != $model->state())
+		{
+			throw new AutoModeler_Exception('Can\'t update a non-loaded model!');
+		}
+
+		$data = $model->as_array();
+
+		if (NULL == $qb)
+		{
+			$qb = new Database_Query_Builder_Update($this->_table_name);
+		}
+
+		// Remove the id, this should not be part of the update
+		$qb->set(array_diff_assoc($data, array('id' => $data['id'])));
+		$qb->where('id', '=', $data['id']);
+		$count = $qb->execute($this->_db);
+
+		return $count;
 	}
 }
