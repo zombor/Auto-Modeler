@@ -11,6 +11,23 @@ class AutoModeler_Model
 	const STATE_LOADED = 'loaded';
 	const STATE_DELETED = 'deleted';
 
+	protected $_rules = array();
+	protected $_validated = FALSE;
+	protected $_lang = 'automodeler';
+
+	/**
+	 * Constructor allows end user to define new arbitrary models
+	 *
+	 * @param array $data an optional data definition array
+	 */
+	public function __construct(array $data = NULL)
+	{
+		if (NULL !== $data)
+		{
+			$this->_data = array_combine($data, array_fill(0, count($data), NULL));
+		}
+	}
+
 	/**
 	 * Returns this model's state
 	 *
@@ -35,4 +52,44 @@ class AutoModeler_Model
 	{
 		return $this->_data;
 	}
+
+	/**
+	 * Getter/setter method for rules
+	 *
+	 * @param array $rules rules to set on this object. Will overwrite
+	 *                     all previous rules.
+	 *
+	 * @return array the current rules for this model
+	 */
+	public function rules(array $rules = NULL)
+	{
+		if ($rules)
+		{
+			$this->_rules = $rules;
+		}
+
+		return $this->_rules;
+	}
+
+	/**
+	 * Runs business logic validations on this model.
+	 *
+	 * You can pass an existing validation object into this method.
+	 * This will let you add some application specific validations to
+	 * run on the model. Password validation is a good use case for
+	 * this.
+	 *
+	 * You can use the :model binding in your validation rules to
+	 * access this model object.
+	 *
+	 * @param Validation $validation a previously filled validation obj
+	 *
+	 * @return array
+	 */
+	/*public function valid(Validation $validation = NULL)
+	{
+		$data = $validation instanceof Validation 
+			? $validation->copy($validation->as_array()+$this->as_array())
+			: Validation::factory($this->as_array());
+	}*/
 }
