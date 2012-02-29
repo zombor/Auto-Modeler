@@ -32,8 +32,14 @@ class Test_AutoModeler_DAO_Database extends PHPUnit_Framework_TestCase
 		// Create model mock
 		$model = $this->getMock(
 			'AutoModeler_Model',
-			array('as_array', 'state', 'pk_value')
+			array('as_array', 'state', 'pk_value', '__get')
 		);
+		$model->expects($this->any())
+			->method('__get')
+			->with('id')
+			->will(
+				$this->returnValue(1)
+			);
 		$model->expects($this->any())
 			->method('as_array')
 			->will(
@@ -229,8 +235,14 @@ class Test_AutoModeler_DAO_Database extends PHPUnit_Framework_TestCase
 		// Create model mock
 		$model = $this->getMock(
 			'AutoModeler_Model',
-			array('as_array', 'state')
+			array('as_array', 'state', '__get')
 		);
+		$model->expects($this->any())
+			->method('__get')
+			->with('id')
+			->will(
+				$this->returnValue(NULL)
+			);
 		$model->expects($this->any())
 			->method('as_array')
 			->will(

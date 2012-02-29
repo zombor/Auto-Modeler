@@ -136,4 +136,21 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 			$this->assertSame($e->getMessage(), 'Undefined key: id');
 		}
 	}
+
+	/**
+	 * Tests that we can set model properties
+	 */
+	public function test_set_model_properties()
+	{
+		$model = new AutoModeler_Model(
+			array(
+				'id'
+			)
+		);
+
+		$model->id = 1;
+
+		$this->assertSame($model->id, 1);
+		$this->assertSame($model->as_array(), array('id' => 1));
+	}
 }

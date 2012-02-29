@@ -44,6 +44,23 @@ class AutoModeler_Model
 	}
 
 	/**
+	 * Setter method to set data array properties
+	 *
+	 * @param string $key the key to set
+	 * @param mixed  $val the value to set
+	 */
+	public function __set($key, $val)
+	{
+		if (array_key_exists($key, $this->_data))
+		{
+			$this->_data[$key] = $val;
+
+			// We've changed, so we aren't valid anymore
+			$this->_validated = FALSE;
+		}
+	}
+
+	/**
 	 * Returns this model's state
 	 *
 	 * @return string
