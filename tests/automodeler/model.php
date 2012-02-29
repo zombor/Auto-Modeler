@@ -99,4 +99,22 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 
 		$this->assertSame($model->rules(), $rules);
 	}
+
+	/**
+	 * Tests that we can read default data values from a model
+	 */
+	public function test_read_properties()
+	{
+		$model = new AutoModeler_Model(
+			array(
+				'id',
+				'foo',
+				'bar'
+			)
+		);
+
+		$this->assertSame($model->id, NULL);
+		$this->assertSame($model->foo, NULL);
+		$this->assertSame($model->bar, NULL);
+	}
 }

@@ -29,6 +29,19 @@ class AutoModeler_Model
 	}
 
 	/**
+	 * Getter method to read data values from this model
+	 *
+	 * @param string $key the key to get
+	 */
+	public function __get($key)
+	{
+		if (array_key_exists($key, $this->_data))
+		{
+			return $this->_data[$key];
+		}
+	}
+
+	/**
 	 * Returns this model's state
 	 *
 	 * @return string
