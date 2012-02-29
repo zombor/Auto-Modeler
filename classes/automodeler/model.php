@@ -39,6 +39,8 @@ class AutoModeler_Model
 		{
 			return $this->_data[$key];
 		}
+
+		throw new AutoModeler_Exception('Undefined key: '.$key);
 	}
 
 	/**

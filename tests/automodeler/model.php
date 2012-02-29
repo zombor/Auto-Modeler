@@ -117,4 +117,23 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 		$this->assertSame($model->foo, NULL);
 		$this->assertSame($model->bar, NULL);
 	}
+
+	/**
+	 * Tests that undefined read requests throw an exception
+	 */
+	public function test_undefined_read_throws_exception()
+	{
+		$model = new AutoModeler_Model;
+
+		try
+		{
+			$id = $model->id;
+
+			$this->fail('Undefined attributes should throw an exception when read!');
+		}
+		catch (AutoModeler_Exception $e)
+		{
+			$this->assertSame($e->getMessage(), 'Undefined key: id');
+		}
+	}
 }
