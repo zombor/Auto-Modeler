@@ -15,6 +15,7 @@ class AutoModeler_DAO_Database
 	protected $_lang = 'form_errors';
 
 	protected $_db;
+
 	/**
 	 * Constructor is for pass in a database instance, DI style
 	 *
@@ -23,6 +24,32 @@ class AutoModeler_DAO_Database
 	public function __construct(Database $database)
 	{
 		$this->_db = $database;
+	}
+
+	/**
+	 * Factory method for obtaining DAO objects with a table name
+	 *
+	 * @param Database $database a datbase object to use
+	 * @param string $table_name the table name to use for this DAO
+	 *
+	 * @return AutoModeler_DAO_Database the object
+	 */
+	public static function factory(Database $database, $table_name)
+	{
+		$dao = new AutoModeler_DAO_Database($database);
+		$dao->_table_name = (string) $table_name;
+
+		return $dao;
+	}
+
+	/**
+	 * Returns the table name for this DAO
+	 *
+	 * @return string the table name
+	 */
+	public function table_name()
+	{
+		return $this->_table_name;
 	}
 
 	/**

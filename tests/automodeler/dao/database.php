@@ -299,6 +299,31 @@ class Test_AutoModeler_DAO_Database extends PHPUnit_Framework_TestCase
 		{
 
 		}
+	}
 
+	/**
+	 * Tests that factory method returns proper objects
+	 */
+	public function test_factory_returns_dao()
+	{
+		// Create database mock
+		$database = $this->getMock('Database');
+
+		$dao = AutoModeler_DAO_Database::factory($database, 'users');
+
+		$this->assertTrue($dao instanceof AutoModeler_DAO_Database);
+	}
+
+	/**
+	 * Tests that table_name method returns proper string
+	 */
+	public function test_table_name_returns_table_name()
+	{
+		// Create database mock
+		$database = $this->getMock('Database');
+
+		$dao = AutoModeler_DAO_Database::factory($database, 'users');
+
+		$this->assertSame($dao->table_name(), 'users');
 	}
 }
