@@ -31,21 +31,27 @@ class AutoModeler_DAO_Database
 	 * @param AutoModeler_Model $model the model to save
 	 *
 	 */
-	public function save(AutoModeler_Model $model)
+	public function create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
 	{
-		if (AutoModeler_Model::STATE_NEW == $model->state())
+		if (AutoModeler_Model::STATE_NEW != $model->state())
 		{
-			$data = $model->as_array();
-			$columns = array_keys($data);
-			$values = array_values($data);
-var_dump('foobar');
-			$insert = new Database_Query_Builder_Insert($this->_table_name, $columns);
-			$insert->values($values);
-			$id = $insert->execute($this->_db);
-
-			$model->pk_value($id);
-			$model->state(AutoModeler_Model::STATE_LOADED);
+			throw new AutoModeler_Exception('Can\'t create a saved model!');
 		}
+
+		$data = $model->as_array();
+		$columns = array_keys($data);
+		$values = array_values($data);
+
+		if (NULL == $qb)
+		{
+			$qb = new Database_Query_Builder_Insert($this->_table_name, $columns);
+		}
+
+		$qb->values($values);
+		$id = $qb->execute($this->_db);
+
+		$model->id = $id;
+		$model->state(AutoModeler_Model::STATE_LOADED);
 
 		return $model;
 	}

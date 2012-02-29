@@ -16,8 +16,13 @@ class AutoModeler_Model
 	 *
 	 * @return string
 	 */
-	public function state()
+	public function state($new_state = NULL)
 	{
+		if ($new_state)
+		{
+			$this->_state = $new_state;
+		}
+
 		return $this->_state;
 	}
 
