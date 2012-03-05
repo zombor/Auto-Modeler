@@ -1,8 +1,8 @@
 <?php
 
-include 'classes/automodeler/dao/database.php';
-include 'classes/automodeler/model.php';
-include 'classes/automodeler/exception.php';
+include_once 'classes/automodeler/dao/database.php';
+include_once 'classes/automodeler/model.php';
+include_once 'classes/automodeler/exception.php';
 
 class Test_AutoModeler_DAO_Database extends PHPUnit_Framework_TestCase
 {
