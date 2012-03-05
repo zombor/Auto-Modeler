@@ -118,10 +118,23 @@ class AutoModeler_Model
 	 *
 	 * @return array
 	 */
-	/*public function valid(Validation $validation = NULL)
+	public function valid(Validation $validation = NULL, Validation $default_validation = NULL)
 	{
 		$data = $validation instanceof Validation 
 			? $validation->copy($validation->as_array()+$this->as_array())
-			: Validation::factory($this->as_array());
-	}*/
+			: $default_validation;
+
+		$data->bind(':model', $this);
+
+		foreach ($this->_rules as $field => $rules)
+		{
+			$data->rules($field, $rules);
+		}
+
+		if ($data->check(TRUE))
+		{
+			return TRUE;
+		}
+
+	}
 }

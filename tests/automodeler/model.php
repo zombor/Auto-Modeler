@@ -153,4 +153,54 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 		$this->assertSame($model->id, 1);
 		$this->assertSame($model->as_array(), array('id' => 1));
 	}
+
+	/**
+	 * Tests that we can successfuly validate a model
+	 */
+	public function test_successfuly_validate_model()
+	{
+		$model = new AutoModeler_Model(
+			array(
+				'id',
+				'foo',
+				'bar'
+			)
+		);
+
+		$model->rules(
+			array(
+				'foo' => array(
+					array('not_empty')
+				),
+				'bar' => array(
+					array('numeric')
+				)
+			)
+		);
+
+		$model->foo = 'bar';
+		$model->bar = 1;
+
+		$validation = $this->getMock(
+			'Validation',
+			array('copy', 'as_array', 'rules', 'check', 'bind')
+		);
+		$validation->expects($this->any())
+			->method('as_array')
+			->will(
+				$this->returnValue(array())
+			);
+		$validation->expects($this->any())
+			->method('check')
+			->will($this->returnValue(TRUE));
+		$validation->expects($this->any())
+			->method('copy')
+			->will(
+				$this->returnValue($validation)
+			);
+
+		$status = $model->valid($validation);
+
+		$this->assertSame($status, TRUE);
+	}
 }
