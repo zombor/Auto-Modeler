@@ -135,6 +135,12 @@ class AutoModeler_Model
 		{
 			return TRUE;
 		}
-
+		else
+		{
+			return array(
+				'status' => FALSE,
+				'errors' => $data->errors($this->_lang)
+			);
+		}
 	}
 }

@@ -155,9 +155,11 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Tests that we can successfuly validate a model
+	 * Gets a standard model with validation for validation tests
+	 *
+	 * @return AutoModeler_Model
 	 */
-	public function test_successfuly_validate_model()
+	protected function get_model_with_validation()
 	{
 		$model = new AutoModeler_Model(
 			array(
@@ -181,9 +183,19 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 		$model->foo = 'bar';
 		$model->bar = 1;
 
+		return $model;
+	}
+
+	/**
+	 * Gets a standard validation object
+	 *
+	 * @return Validation
+	 */
+	protected function get_default_validation_object()
+	{
 		$validation = $this->getMock(
 			'Validation',
-			array('copy', 'as_array', 'rules', 'check', 'bind')
+			array('copy', 'as_array', 'rules', 'check', 'bind', 'errors')
 		);
 		$validation->expects($this->any())
 			->method('as_array')
@@ -191,16 +203,61 @@ class Test_AutoModeler_Model extends PHPUnit_Framework_TestCase
 				$this->returnValue(array())
 			);
 		$validation->expects($this->any())
-			->method('check')
-			->will($this->returnValue(TRUE));
-		$validation->expects($this->any())
 			->method('copy')
 			->will(
 				$this->returnValue($validation)
 			);
 
+		return $validation;
+	}
+
+	/**
+	 * Tests that we can successfuly validate a model
+	 */
+	public function test_successfuly_validate_model()
+	{
+		$model = $this->get_model_with_validation();
+
+		$validation = $this->get_default_validation_object();
+		$validation->expects($this->any())
+			->method('check')
+			->will($this->returnValue(TRUE));
+
 		$status = $model->valid($validation);
 
 		$this->assertSame($status, TRUE);
+	}
+
+	/**
+	 * Tests that we can successfuly validation an invalid model
+	 */
+	public function test_error_validate_model()
+	{
+		$model = $this->get_model_with_validation();
+		$model->bar = 'test';
+
+		$validation = $this->get_default_validation_object();
+
+		$validation->expects($this->any())
+			->method('check')
+			->will($this->returnValue(FALSE));
+		$validation->expects($this->any())
+			->method('errors')
+			->will(
+				$this->returnValue(
+					array(
+						'foo' => 'foo must not be empty',
+						'bar' => 'bar must be numeric',
+					)
+				)
+			);
+
+		$status = $model->valid($validation);
+
+		$this->assertTrue(is_array($status), $status);
+		$this->assertTrue(array_key_exists('status', $status));
+		$this->assertFalse($status['status']);
+		$this->assertTrue(array_key_exists('errors', $status));
+		$this->assertTrue(is_array($status['errors']));
 	}
 }
