@@ -15,3 +15,20 @@ If you write your own DAO class, it should follow the following conventions:
    - `delete()`, which removes a record in the data store
  - Any method that changes data in the data store should take a `AutoModeler_Model` type object as the first parameter.
    - Any other parameters to these methods should be optional.
+
+## Using a factory DAO object
+
+You can also generate custom DAO objects at runtime, with the `factory()` method:
+
+
+	$model = new Model_Foo;
+	$model->set_fields(array('foo' => 'bar'));
+	$dao = AutoModeler_DAO_Database::factory(Database::instance(), 'foo');
+	$new_model = $dao->create($model);
+
+Your `$new_model` variable will contain a loaded and saved model instance. You can update and delete it like this too:
+
+	$new_model->foo = 'new value';
+	$dao->update($new_model);
+
+	$dao->delete($new_model);
