@@ -5,17 +5,15 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 	protected $_model_name;
 
 	/**
-	 * Loads a database result. Can be used to load a single item into this model
-	 * or return a result set of many models. You can pass any query builder object
-	 * into the first parameter to load the specific data you need. Common usage:
+	 * Loads a single database result. You can pass any query builder object
+	 * into the first parameter to load the specific data you need. 
 	 * 
-	 * @param Database_Query_Builder_Select $query an optional query builder object to load with
-	 * @param integer                       $limit a number greater than one will return a data set
+	 * @param Database_Query_Builder_Select $query an optional query builder
+	 *                                             object to load with
 	 *
 	 * @return AutoModeler_Model when loading one object
-	 * @return Database_Result when loading multiple results
 	 */
-	protected function _load(Database_Query_Builder_Select $query = NULL)
+	protected function _load_object(Database_Query_Builder_Select $query = NULL)
 	{
 		$model = new $this->_model_name;
 
@@ -29,14 +27,7 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 			$query->select_array(array_keys($model->as_array()));
 		}
 
-		$query->from($this->_table_name);
-
-		// If we are going to return a data set, we want objects back
-		// How do we do this without passing $limit now?
-		if ($limit != 1)
-		{
-			$query->as_object($this->_model_name);
-		}
+		$query->from($model->table_name());
 
 		$data = $query->execute($this->_db);
 
@@ -55,11 +46,48 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 	}
 
 	/**
+	 * Loads a database result set. You can pass any query builder object
+	 * into the first parameter to load the specific data you need. Use the
+	 * second parameter to set the limit. Omit it to load all results.
+	 *
+	 * (note: if your $query has a limit parameter in it, this method might
+	 *        exibit odd behavior ;)
+	 * 
+	 * @param Database_Query_Builder_Select $query an optional query builder
+	 *                                             object to load with
+	 * @param int                           $limit a limit to apply to the query
+	 *
+	 * @return AutoModeler_Model when loading one object
+	 */
+	protected function _load_set(Database_Query_Builder_Select $query = NULL)
+	{
+		$model = new $this->_model_name;
+
+		// Start
+		$model->state(AutoModeler_Model::STATE_LOADING);
+
+		// Use a normal select query by default
+		if ($query == NULL)
+		{
+			$query = new Database_Query_Builder_Select;
+			$query->select_array(array_keys($model->as_array()));
+		}
+
+		$query->from($model->table_name());
+
+		$query->as_object($this->_model_name);
+
+		$data = $query->execute($this->_db);
+
+		return $data;
+	}
+
+	/**
 	 * Processes a load() from a result
 	 *
 	 * @return null
 	 */
-	protected function process_load(AutoModeler_Model $model, array $data)
+	protected function _process_load(AutoModeler_Model $model, array $data)
 	{
 		$model->set_fields($data);
 	}
@@ -71,7 +99,7 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 	 *
 	 * @return AutoModeler_Model
 	 */
-	protected function process_load_state(AutoModeler_Model $model)
+	protected function _process_load_state(AutoModeler_Model $model)
 	{
 		if ($model->id)
 		{
