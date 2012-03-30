@@ -16,6 +16,20 @@ If you write your own DAO class, it should follow the following conventions:
  - Any method that changes data in the data store should take a `AutoModeler_Model` type object as the first parameter.
    - Any other parameters to these methods should be optional.
 
+### Using your DAO Class
+
+You should have an existing AutoModeler_Model class to pass into your DAO methods:
+
+	$model = new Model_Foo;
+	$model->set_fields(array('foo' => 'bar'));
+	$dao = new DAO_Foo;
+	$model = $dao->create($model);
+
+	$model->foo = 'foobar';
+	$dao->update($model);
+
+	$dao->delete($model);
+
 ## Using a factory DAO object
 
 You can also generate custom DAO objects at runtime, with the `factory()` method:
