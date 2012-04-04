@@ -33,7 +33,9 @@ class AutoModeler_ORM_Core extends AutoModeler
 		{
 			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
             {
-                if(!($this->_lazy[$key] instanceof AutoModeler_ORM))
+				if($this->_lazy[$key]['id'] != $this->_data[$key.'_id'])
+					unset($this->_lazy[$key]);
+				else if(!($this->_lazy[$key] instanceof AutoModeler_ORM))
                 {
                     $model = AutoModeler::factory($key);
                     $model->process_load($this->_lazy[$key]);
@@ -41,7 +43,8 @@ class AutoModeler_ORM_Core extends AutoModeler
                     $this->_lazy[$key] = $model;
                 }
             }
-            else
+
+			if(!isset($this->_lazy[$key]))
             {
                 $this->_lazy[$key] = AutoModeler::factory($key, $this->_data[$key.'_id']);
             }
@@ -101,10 +104,6 @@ class AutoModeler_ORM_Core extends AutoModeler
 		}
 		else
 		{
-			if(array_key_exists($key.'_id', $this->_data) && isset($this->_lazy[$key]) && $value !== $this->_data[$key]) {
-				unset($this->_lazy[$key]);
-			}
-
 			parent::__set($key, $value);
 		}
 	}
@@ -185,8 +184,8 @@ class AutoModeler_ORM_Core extends AutoModeler
 			}
 			foreach($this->_load_with as $k => $v)
 			{
-				$model = $v;
-				$alias = is_numeric($k)?$v:$k;
+				$alias = $v;
+				$model = is_numeric($k)?$v:$k;
 				foreach (AutoModeler_ORM::factory($model)->fields() as $field)
 				{
 					$fields[] = array($field, str_replace('.', ':', $field));
