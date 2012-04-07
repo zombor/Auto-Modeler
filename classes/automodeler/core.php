@@ -198,7 +198,17 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		if (array_key_exists($key, $this->_data))
 		{
-			$this->_data[$key] = $value;
+			// We support custom setter methods, useful for filters, etc
+			if (method_exists($this, 'set_'.$key))
+			{
+				$method = 'set_'.$key;
+				$this->$method($value);
+			}
+			else
+			{
+				$this->_data[$key] = $value;
+			}
+
 			$this->_validated = FALSE;
 			return;
 		}
@@ -396,7 +406,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 
 				$this->state(AutoModeler::STATE_LOADED);
 
-				return ($this->_data['id'] = $id[0]);
+				return $this->_data['id'] ? $this->_data['id'] : ($this->_data['id'] = $id[0]);
 			}
 		}
 
@@ -411,7 +421,7 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	 */
 	public function delete()
 	{
-		if (AutoModeler::STATE_LOADED)
+		if ($this->loaded())
 		{
 			$this->_state = AutoModeler::STATE_DELETED;
 
@@ -419,6 +429,21 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 		}
 
 		throw new AutoModeler_Exception('Cannot delete a non-loaded model '.get_class($this).'!', array(), array());
+	}
+
+	/**
+	 * Reloads the current object's values from the database.
+	 *
+	 * @return $this
+	 */
+	public function reload()
+	{
+		if ($this->loaded())
+		{
+			return $this->load(db::select_array($this->fields())->where('id', '=', $this->_data['id']));
+		}
+
+		throw new AutoModeler_Exception('Cannot reload a non-loaded model '.get_class($this).'.', array(), array());
 	}
 
 	/**

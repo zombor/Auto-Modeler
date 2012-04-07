@@ -19,7 +19,7 @@ In order to use AutoModeler with your models, copy the module to your MODPATH, a
 		);
 	}
 
-The $_data variable is an associative array containing the table column names and default values for the blogs table in this case.
+The $_data variable is an associative array containing the table column names and default values for the 'foos' table in this case.
 
 ## Working with models
 
@@ -51,13 +51,21 @@ Note that if you use set_fields() from $_POST, make sure you filter the keys. Yo
 
 	$foo = new Model_Foo(1);
 
-## Update it's values
+## Update its values
 
 	$foo->bar = 'changed';
 
 ## Save the model
 
 	$foo->save();
+
+## Loading an arbitrary row
+
+	$foo = Model::factory('foo')->load(db::select()->where('bar', '=', 'foobar'));
+
+## Get many results back
+
+	$foos = Model::factory('foo')->load(db::select()->where('bar', 'IN', array(1,2,3,4)), NULL);
 
 ## ArrayAccess
 
@@ -67,10 +75,18 @@ You can also access your model fields via the ArrayAccess interface: $user['user
 
 AutoModeler supports in-model validation. You can defines your field rules in your model, and upon save(), the library will run validation for you on the entered fields. The process to do this is as follows:
 
-Create a $_rules array in your model. They key is the field name, and the value is an array of rules.
+Create a $_rules array in your model. They key is the field name, and the value is an array of rules arrays:
 
-    $_rules = array('name' => array(array('required', 'alpha_dash', 'min_length' => array('2'))),
-                   'address' => array(array('required')));
+	$_rules = array(
+		'name' => array(
+			array('not_empty'), 
+			array('alpha_dash'),
+			array('min_length', array(':value', 2)),
+		),
+		'address' => array(
+			array('not_empty'),
+		),
+	);
 
 Now, when you save() your model, it will check the "name" and "address" fields with the rules provided. If validation fails, the library will throw an exception containing the failed error messages. You can use a try/catch block to detect failing validation:
 
@@ -138,3 +154,20 @@ For more advanced validations, such as password verifications that don't directl
 	}
 
 If you run this, you will get an error about the passwords not matching. You can take the example from here to create advanced validation schemes for your models.
+
+## Custom Field Setters
+
+Auto-Modeler supports customized setter methods, which you can use for things like filters. This is an alternative to overloading `__set()`. For example, a common use case is hashing a password:
+
+	protected $_data = array(
+		'id' => '',
+		'username' => '',
+		'password' => '',
+	);
+
+	public function set_password($value)
+	{
+		$this->_data['password'] = Auth::hash($value);
+	}
+
+Define your method as "set_" with your field name prefixed.
