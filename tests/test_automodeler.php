@@ -28,7 +28,7 @@ class AutoModeler_Test extends PHPUnit_Extensions_Database_TestCase
 {
 	protected function getconnection()
 	{
-		$config = Kohana::config('database')->default;
+		$config = Kohana::$config->load('database')->default;
 
 		$pdo = new PDO('mysql:host='.$config['connection']['hostname'].';dbname='.$config['connection']['database'], $config['connection']['username'], $config['connection']['password']);
 		return $this->createDefaultDBConnection($pdo, $config['connection']['database']);

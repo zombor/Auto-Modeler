@@ -6,32 +6,36 @@
  * Use this schema to use these tests:
  * 
  * CREATE TABLE `ormusers` (
- * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
- * `username` VARCHAR( 50 ) NOT NULL ,
- * `password` CHAR( 50 ) NOT NULL ,
- * `email` VARCHAR( 50 ) NOT NULL ,
- * `last_login` INT NOT NULL ,
- * `logins` INT UNSIGNED NOT NULL,
- * `foobar_id` INT NOT NULL ,
- * ) ENGINE = INNODB ;
+ *   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ *   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+ *   `password` char(50) COLLATE utf8_unicode_ci NOT NULL,
+ *   `email` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+ *   `last_login` int(11) NOT NULL,
+ *   `logins` int(10) unsigned NOT NULL,
+ *   `foo_id` int(11) NOT NULL,
+ *   PRIMARY KEY (`id`)
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
  * 
  * CREATE TABLE `testroles` (
- * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
- * `name` VARCHAR( 50 ) NOT NULL
- * ) ENGINE = INNODB;
- * 
+ *   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ *   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+ *   PRIMARY KEY (`id`)
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
  * CREATE TABLE `foos` (
- * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
- * `name` VARCHAR( 50 ) NOT NULL
- * ) ENGINE = INNODB;
+ *   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ *   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+ *   `ormuser_id` int(10) unsigned NOT NULL,
+ *   PRIMARY KEY (`id`)
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
  * 
  * CREATE TABLE `ormusers_testroles` (
- * `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
- * `ormuser_id` INT UNSIGNED NOT NULL REFERENCES `ormusers` (`id`) ON DELETE CASCADE,
- * `testrole_id` INT UNSIGNED NOT NULL REFERENCES `testroles` (`id`) ON DELETE CASCADE
- * ) ENGINE = INNODB;
+ *   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ *   `ormuser_id` int(10) unsigned NOT NULL,
+ *   `testrole_id` int(10) unsigned NOT NULL,
+ *   PRIMARY KEY (`id`)
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
  * 
- *
  * @group automodeler_orm
  *
  * @package   AutoModeler
@@ -46,7 +50,7 @@ class AutoModeler_ORM_Test extends PHPUnit_Extensions_Database_TestCase
 {
 	protected function getconnection()
 	{
-		$config = Kohana::config('database')->default;
+		$config = Kohana::$config->load('database')->default;
 
 		$pdo = new PDO('mysql:host='.$config['connection']['hostname'].';dbname='.$config['connection']['database'], $config['connection']['username'], $config['connection']['password']);
 		return $this->createDefaultDBConnection($pdo, $config['connection']['database']);
