@@ -73,7 +73,7 @@ You can also access your model fields via the ArrayAccess interface: $user['user
 
 ## In-Model Validation
 
-AutoModeler supports in-model validation. You can defines your field rules in your model, and upon save(), the library will run validation for you on the entered fields. The process to do this is as follows:
+AutoModeler supports in-model validation. You can defines your field rules in your model, and before save(), the library will run validation for you on the entered fields. The process to do this is as follows:
 
 Create a $_rules array in your model. They key is the field name, and the value is an array of rules arrays:
 
