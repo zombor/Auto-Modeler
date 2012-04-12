@@ -56,8 +56,9 @@ class AutoModeler_DAO_Database
 	 * Saves a model object to the data store
 	 *
 	 * @param AutoModeler_Model             $model the model to save
-	 * @param Database_Query_Builder_Insert $qb    a qb object for mocking
-	 *
+	 * @param Database_Query_Builder_Insert|null $qb    a qb object for mocking
+	 * @return AutoModeler_Model
+	 * @throws AutoModeler_Exception
 	 */
 	public function create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
 	{
