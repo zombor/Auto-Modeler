@@ -8,8 +8,8 @@
  * @copyright (c) 2012 Jeremy Bush
  * @license   http://www.opensource.org/licenses/isc-license.txt
  */
-class AutoModeler_DAO_Database
-{
+class AutoModeler_DAO_Database {
+
 	protected $_table_name;
 
 	protected $_lang = 'form_errors';
