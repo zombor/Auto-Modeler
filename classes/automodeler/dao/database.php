@@ -120,6 +120,8 @@ class AutoModeler_DAO_Database
 	 *
 	 * @param AutoModeler_Model             $model the model to delete
 	 * @param Database_Query_Builder_Delete $qb    optional qb object for mocking
+	 * @return AutoModeler_Model
+	 * @throws AutoModeler_Exception
 	 */
 	public function delete(AutoModeler_Model $model, Database_Query_Builder_delete $qb = NULL)
 	{
