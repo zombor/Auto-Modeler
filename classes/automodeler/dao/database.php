@@ -90,8 +90,8 @@ class AutoModeler_DAO_Database
 	 *
 	 * @param AutoModeler_Model             $model the model to save
 	 * @param Database_Query_Builder_Update $qb    optional qb object for mocks
-	 *
-	 * @return the count of how many rows were updated
+	 * @return int the count of how many rows were updated
+	 * @throws AutoModeler_Exception
 	 */
 	public function update(AutoModeler_Model $model, Database_Query_Builder_Update $qb = NULL)
 	{
