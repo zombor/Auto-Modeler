@@ -8,8 +8,8 @@
  * @copyright (c) 2012 Jeremy Bush
  * @license   http://www.opensource.org/licenses/isc-license.txt
  */
-class AutoModeler_DAO_Database
-{
+class AutoModeler_DAO_Database {
+
 	protected $_table_name;
 
 	protected $_lang = 'form_errors';
@@ -56,8 +56,9 @@ class AutoModeler_DAO_Database
 	 * Saves a model object to the data store
 	 *
 	 * @param AutoModeler_Model             $model the model to save
-	 * @param Database_Query_Builder_Insert $qb    a qb object for mocking
-	 *
+	 * @param Database_Query_Builder_Insert|null $qb    a qb object for mocking
+	 * @return AutoModeler_Model
+	 * @throws AutoModeler_Exception
 	 */
 	public function create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
 	{
@@ -89,8 +90,8 @@ class AutoModeler_DAO_Database
 	 *
 	 * @param AutoModeler_Model             $model the model to save
 	 * @param Database_Query_Builder_Update $qb    optional qb object for mocks
-	 *
-	 * @return the count of how many rows were updated
+	 * @return int the count of how many rows were updated
+	 * @throws AutoModeler_Exception
 	 */
 	public function update(AutoModeler_Model $model, Database_Query_Builder_Update $qb = NULL)
 	{
@@ -119,6 +120,8 @@ class AutoModeler_DAO_Database
 	 *
 	 * @param AutoModeler_Model             $model the model to delete
 	 * @param Database_Query_Builder_Delete $qb    optional qb object for mocking
+	 * @return AutoModeler_Model
+	 * @throws AutoModeler_Exception
 	 */
 	public function delete(AutoModeler_Model $model, Database_Query_Builder_delete $qb = NULL)
 	{
