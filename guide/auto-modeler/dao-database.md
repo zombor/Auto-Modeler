@@ -1,28 +1,45 @@
-# DAO Classes
+# DAO Database Class
 
-DAO (Data Access Object) classes are used to interface in a Create/Read/Update fashion with a backend data store.
+## Creating a DAO Database class
 
-These data stores can be a database, xml file, csv file, RESTful API backend, or anything else. All you need is a DAO interface class to implement the backend.
+There are two ways to use the DAO class:
 
-## Writing DAO classes
+### Factory Pattern
 
-If you write your own DAO class, it should follow the following conventions:
+You can use the factory pattern if you have a basic need for only Create, Update and Delete functionality. This has already been written for you.
 
- - It should have a `factory()` method for making new instances with different parameters easily.
- - It should have the following methods:
-   - `create()`, which adds a record to the data store
-   - `update()`, which persists changes to a record in the data store
-   - `delete()`, which removes a record in the data store
- - Any method that changes data in the data store should take a `AutoModeler_Model` type object as the first parameter.
-   - Any other parameters to these methods should be optional.
+	$dao = AutoModeler_DAO_Database::factory(Database::instance(), $table_name);
 
-### Using your DAO Class
+You must pass in a database instance as the first parameter and the table name you wish to use as the second parameter. The table name should match the table for the `Automodeler_Model` class that you are using with the DAO instance.
+
+### Writing a custom DAO Class
+
+If you have advanced rules for creating, saving and deleting, you should create a custom DAO class. Here is a basic example:
+
+	class AutoModeler_DAO_Database_Foo extends AutoModeler_DAO_Database
+	{
+		protected $_table_name = 'foo';
+
+		public function my_custom_create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
+		{
+			// ... Do your custom insert stuff here
+		}
+	}
+
+Make sure you specify the $_table_name property, and make sure any custom methods you write (if any) take two parameters:
+
+ - AutoModeler_Model $model
+ - Datbase_Query_Builder_Insert $qb = NULL
+
+This is so you can mock these items during testing and truly unit test your classes.
+
+## Using a Database DAO Class
 
 You should have an existing AutoModeler_Model class to pass into your DAO methods:
 
 	$model = new Model_Foo;
 	$model->set_fields(array('foo' => 'bar'));
-	$dao = new DAO_Foo;
+	$dao = new AutoModeler_DAO_Database_Foo(Database::instance());
 	$model = $dao->create($model);
 
 	$model->foo = 'foobar';
@@ -33,7 +50,6 @@ You should have an existing AutoModeler_Model class to pass into your DAO method
 ## Using a factory DAO object
 
 You can also generate custom DAO objects at runtime, with the `factory()` method:
-
 
 	$model = new Model_Foo;
 	$model->set_fields(array('foo' => 'bar'));
