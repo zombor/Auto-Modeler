@@ -67,10 +67,18 @@ You can also access your model fields via the ArrayAccess interface: $user['user
 
 AutoModeler supports in-model validation. You can defines your field rules in your model, and upon save(), the library will run validation for you on the entered fields. The process to do this is as follows:
 
-Create a $_rules array in your model. They key is the field name, and the value is an array of rules.
+Create a $_rules array in your model. They key is the field name, and the value is an array of rules arrays:
 
-    $_rules = array('name' => array(array('required', 'alpha_dash', 'min_length' => array('2'))),
-                   'address' => array(array('required')));
+	$_rules = array(
+		'name' => array(
+			array('not_empty'), 
+			array('alpha_dash'),
+			array('min_length', array(':value', 2)),
+		),
+		'address' => array(
+			array('not_empty'),
+		),
+	);
 
 Now, when you save() your model, it will check the "name" and "address" fields with the rules provided. If validation fails, the library will throw an exception containing the failed error messages. You can use a try/catch block to detect failing validation:
 
