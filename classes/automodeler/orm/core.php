@@ -13,7 +13,7 @@ class AutoModeler_ORM_Core extends AutoModeler
 	protected $_has_many = array();
 	protected $_belongs_to = array();
 
-	protected $_load_with = NULL;
+	protected $_load_with = array();
 
 	// Model data to lazy load
 	protected $_lazy = array();
@@ -28,18 +28,28 @@ class AutoModeler_ORM_Core extends AutoModeler
 	public function __get($key)
 	{
 		// See if we are requesting a foreign key
-		if (isset($this->_data[$key.'_id']))
+		//if (isset($this->_data[$key.'_id']))
+		if(array_key_exists($key.'_id', $this->_data)) 
 		{
 			if (isset($this->_lazy[$key])) // See if we've lazy loaded it
-			{
-				$model = AutoModeler::factory($key);
-				$model->process_load($this->_lazy[$key]);
-				$model->process_load_state();
-				return $model;
-			}
+            {
+				if($this->_lazy[$key]['id'] != $this->_data[$key.'_id'])
+					unset($this->_lazy[$key]);
+				else if(!($this->_lazy[$key] instanceof AutoModeler_ORM))
+                {
+                    $model = AutoModeler::factory($key);
+                    $model->process_load($this->_lazy[$key]);
+                    $model->process_load_state();
+                    $this->_lazy[$key] = $model;
+                }
+            }
 
-			// Get the row from the foreign table
-			return AutoModeler::factory($key, $this->_data[$key.'_id']);
+			if(!isset($this->_lazy[$key]))
+            {
+                $this->_lazy[$key] = AutoModeler::factory($key, $this->_data[$key.'_id']);
+            }
+
+            return $this->_lazy[$key];
 		}
 		else if (isset($this->_data[$key]))
 			return $this->_data[$key];
@@ -103,30 +113,37 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 *
 	 * @return null
 	 */
-	protected function process_load($data)
-	{
-		$parsed_data = array();
-		foreach ($data as $key => $value)
-		{
-			if (strpos($key, ':'))
-			{
-				list($table, $field) = explode(':', $key);
-				if ($table == $this->_table_name)
-				{
-					$parsed_data[$field] = $value;
-				}
-				elseif ($field)
-				{
-					$this->_lazy[inflector::singular($table)][$field] = $value;
-				}
-			}
-			else
-			{
-				$parsed_data[$key] = $value;
-			}
-		}
-		$this->_data = $parsed_data;
-	}
+    protected function process_load($data)
+    {
+        $parsed_data = array();
+        $lazy_data = array();
+
+        foreach ($data as $key => $value)
+        {
+            if (strpos($key, ':'))
+            {
+                list($table, $field) = explode(':', $key);
+                if ($table == $this->_table_name)
+                {
+                    $parsed_data[$field] = $value;
+                }
+                elseif ($field)
+                {
+                    $lazy_data[inflector::singular($table)][$field] = $value;
+                }
+            }
+            else
+            {
+                $parsed_data[$key] = $value;
+            }
+        }
+        $this->_data = $parsed_data;
+        foreach($lazy_data as $table => $fields)
+        {
+            if(!is_null($fields['id'])) $this->_lazy[$table] = $fields;
+        }
+
+    }
 
 	/**
 	 * Loads a model with a different one
@@ -135,7 +152,12 @@ class AutoModeler_ORM_Core extends AutoModeler
 	 */
 	public function with($model)
 	{
-		$this->_load_with = $model;
+		$this->_load_with = (array)$this->_load_with;
+
+		if(!in_array($model, $this->_load_with))
+		{
+			$this->_load_with = array_merge($this->_load_with, (array)$model);
+		}
 		return $this;
 	}
 
@@ -152,33 +174,27 @@ class AutoModeler_ORM_Core extends AutoModeler
 			$query = db::select_array(array_keys($this->_data));
 		}
 
-		if ($this->_load_with !== NULL)
+		$this->_load_with = (array)$this->_load_with;
+		if (count($this->_load_with))
 		{
-			if (is_array($this->_load_with))
-			{
-				$model = current(array_keys($this->_load_with));
-				$alias = current(array_values($this->_load_with));
-			}
-			else
-			{
-				$model = $this->_load_with;
-				$alias = $this->_load_with;
-			}
-
 			$fields = array();
 			foreach ($this->fields() as $field)
 			{
 				$fields[] = array($field, str_replace($this->_table_name.'.', '', $field));
 			}
-			foreach (AutoModeler_ORM::factory($model)->fields() as $field)
+			foreach($this->_load_with as $k => $v)
 			{
-				$fields[] = array($field, str_replace('.', ':', $field));
+				$alias = $v;
+				$model = is_numeric($k)?$v:$k;
+				foreach (AutoModeler_ORM::factory($model)->fields() as $field)
+				{
+					$fields[] = array($field, str_replace('.', ':', $field));
+				}
+				$join_model = Model::factory($model);
+				$join_table = $join_model->get_table_name();
+				$query->join($join_table, 'LEFT')->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 			}
-
 			$query->select_array($fields, TRUE);
-			$join_model = Model::factory($model);
-			$join_table = $join_model->get_table_name();
-			$query->join($join_table)->on($join_table.'.id', '=', $this->_table_name.'.'.$alias.'_id');
 		}
 
 		return parent::load($query, $limit);

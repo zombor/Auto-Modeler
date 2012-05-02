@@ -17,6 +17,9 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	// The database fields
 	protected $_data = array();
 
+	// Fields that have been updated
+	protected $_changed = array();
+
 	// Validation rules in a 'field' => 'rules' array
 	protected $_rules = array();
 	protected $_callbacks = array();
@@ -198,13 +201,19 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	{
 		if (array_key_exists($key, $this->_data))
 		{
-			$this->_data[$key] = $value;
-			$this->_validated = FALSE;
+			if($value !== $this->_data[$key])
+			{
+				$this->_data[$key] = $value;
+				$this->_changed[$key] = true;
+				$this->_validated = FALSE;
+			}
+
 			return;
 		}
 
 		Log::instance()->add(Log::ERROR, 'Field '.$key.' does not exist in '.get_class($this).'!');
 	}
+
 
 	/**
 	 * sleep method for serialization
@@ -385,14 +394,21 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 		{
 			if ($this->state() == AutoModeler::STATE_LOADED) // Do an update
 			{
-				return count(db::update($this->_table_name)->set(array_diff_assoc($this->_data, array('id' => $this->_data['id'])))->where('id', '=', $this->_data['id'])->execute($this->_db));
+				if(count($this->_changed))
+				{
+					$count = count(db::update($this->_table_name)->set(array_intersect_key($this->_data, $this->_changed))->where('id', '=', $this->_data['id'])->execute($this->_db));
+					$this->_changed = array();
+				} else $count = 0;
+
+				return $count;
 			}
 			else // Do an insert
 			{
-				$columns = array_keys($this->_data);
+				$data = array_filter($this->_data, function ($e) { return !is_null($e); });
+				$columns = array_keys($data);
 				$id = db::insert($this->_table_name)
 						->columns($columns)
-						->values($this->_data)->execute($this->_db);
+						->values($data)->execute($this->_db);
 
 				$this->state(AutoModeler::STATE_LOADED);
 
