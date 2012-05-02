@@ -15,6 +15,8 @@ class AutoModeler_Model
 	protected $_validated = FALSE;
 	protected $_lang = 'automodeler';
 
+	protected $_gateway;
+
 	/**
 	 * Constructor allows end user to define new arbitrary models
 	 *
@@ -58,6 +60,16 @@ class AutoModeler_Model
 			// We've changed, so we aren't valid anymore
 			$this->_validated = FALSE;
 		}
+	}
+
+	/**
+	 * Mass assignment method.
+	 *
+	 * @param array $data the data to set
+	 */
+	public function data(array $data)
+	{
+		$this->_data = $data;
 	}
 
 	/**
@@ -142,5 +154,15 @@ class AutoModeler_Model
 				'errors' => $data->errors($this->_lang)
 			);
 		}
+	}
+
+	/**
+	 * Returns the gateway object for this class
+	 *
+	 * @return AutoModeler_Gateway
+	 */
+	public function gateway()
+	{
+		return new $this->_gateway;
 	}
 }

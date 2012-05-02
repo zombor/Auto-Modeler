@@ -1,0 +1,7 @@
+{
+    "config": { "bin-dir": "." },
+    "require": {
+        "php": ">=5.3.2",
+        "cordoval/phpspec": "master"
+    }
+}
