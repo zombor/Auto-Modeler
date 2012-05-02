@@ -112,5 +112,3 @@ class DescribeAutoModeler extends \PHPSpec\Context
 			);
 	}
 }
-
-class Validation {}

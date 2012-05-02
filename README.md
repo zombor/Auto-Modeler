@@ -17,6 +17,6 @@ AutoModeler uses PHPSpec and Mockery for it's testing suite. These are pulled in
 
 This will install composer. Run the specs with:
 
-	./phpspec-composer.php specs -f d -b -c
+	./phpspec-composer.php specs -f d -b -c --bootstrap specs/bootstrap.php
 
 If you are contributing to AutoModeler, you must include specs with your contribution.
