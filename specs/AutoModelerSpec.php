@@ -40,6 +40,14 @@ class DescribeAutoModeler extends \PHPSpec\Context
 		$this->spec($model->as_array())->should->be($array);
 	}
 
+	public function itShouldChangeState()
+	{
+		$model = new AutoModeler_Model;
+		$model->state($state = AutoModeler_Model::STATE_LOADED);
+
+		$this->spec($model->state())->should->be($state);
+	}
+
 	public function itShouldHaveNewStateWhenNew()
 	{
 		$model = new AutoModeler_Model;
