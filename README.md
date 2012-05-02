@@ -1,10 +1,22 @@
-# auto-modeler: Simple and easy to use Kohana 3.0 CRUD/ORM library
+# auto-modeler: Simple and easy to use Kohana 3 CRUD/ORM library
 
 ## What does it do?
 
-This Kohana module allows you to easily access and model your database and its relationships.
+AutoModeler is a group of modeling classes to let you write better apps. It facilitates the seperation of persistance logic from your models.
 
-## How does it work?
+## Using it
 
-Put it in your modules folder, enable it in your kohana config, and read the docs under guide/ on how to use it.
+See the userguide contents in the `guide/` directory.
 
+## Running tests / contributing
+
+AutoModeler uses PHPSpec and Mockery for it's testing suite. These are pulled in with Composer:
+
+	wget http://getcomposer.org/composer.phar
+	php composer.phar install
+
+This will install composer. Run the specs with:
+
+	./phpspec-composer.php specs -f d -b -c
+
+If you are contributing to AutoModeler, you must include specs with your contribution.
