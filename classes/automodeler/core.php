@@ -176,8 +176,17 @@ class AutoModeler_Core extends Model_Database implements ArrayAccess
 	public function __get($key)
 	{
 		if (array_key_exists($key, $this->_data))
-		 	return $this->_data[$key];
-
+		{
+			if (method_exists($this, 'get_'.$key))
+			{
+				$method = 'get_' . $key;
+				return $this->$method();
+			}
+			else
+			{
+				return $this->_data[$key];
+			}
+		}
 		throw new AutoModeler_Exception('Field '.$key.' does not exist in '.get_class($this).'!', array(), '');
 	}
 
