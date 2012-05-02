@@ -72,16 +72,37 @@ class DescribeAutoModeler extends \PHPSpec\Context
 
 	public function itShouldBeValidWithNoRules()
 	{
-		$this->pending('Mockery doesn\'t seem to support named mocks.');
+	//	$this->pending('Mockery doesn\'t seem to support named mocks.');
 		$model = new AutoModeler_Model;
 
 		$validation = Mockery::mock('Validation');
+		$validation->shouldReceive('bind');
+		$validation->shouldReceive('rules')->never();
+		$validation->shouldReceive('check')->once()
+			->andReturn(TRUE);
 
 		$this->spec($model->valid(NULL, $validation))->should->beTrue();
 	}
 
 	public function itShouldFailValidationWhenInvalid()
 	{
-		$this->pending('Mockery doesn\'t seem to support named mocks.');
+		$model = new AutoModeler_Model;
+
+		$validation = Mockery::mock('Validation');
+		$validation->shouldReceive('bind');
+		$validation->shouldReceive('check')
+			->once()
+			->andReturn(FALSE);
+		$validation->shouldReceive('errors')
+			->once()
+			->andReturn($errors = array('id' => 'required'));
+
+		$this->spec($model->valid(NULL, $validation))
+			->should
+			->be(
+				array('status' => FALSE, 'errors' => $errors)
+			);
 	}
 }
+
+class Validation {}
