@@ -80,13 +80,32 @@ class DescribeAutoModeler extends \PHPSpec\Context
 
 	public function itShouldBeValidWithNoRules()
 	{
-	//	$this->pending('Mockery doesn\'t seem to support named mocks.');
 		$model = new AutoModeler_Model;
 
 		$validation = Mockery::mock('Validation');
 		$validation->shouldReceive('bind');
 		$validation->shouldReceive('rules')->never();
 		$validation->shouldReceive('check')->once()
+			->andReturn(TRUE);
+
+		$this->spec($model->valid(NULL, $validation))->should->beTrue();
+	}
+
+	public function itShouldPassvalidationWhenValid()
+	{
+		$model = new AutoModeler_Model;
+		$model->rules(
+			array(
+				'foo' => array('not_empty')
+			)
+		);
+
+		$validation = Mockery::mock('Validation');
+		$validation->shouldReceive('bind');
+		$validation->shouldReceive('rules')
+			->once();
+		$validation->shouldReceive('check')
+			->once()
 			->andReturn(TRUE);
 
 		$this->spec($model->valid(NULL, $validation))->should->beTrue();
