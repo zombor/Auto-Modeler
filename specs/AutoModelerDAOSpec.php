@@ -85,7 +85,6 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
 
-#		$dao->create($model, NULL, $qb, $this->default_validation);
 		$this->spec(
 			function() use ($model, $dao, $qb)
 			{
@@ -117,7 +116,7 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
 
-		$count = $dao->update($model, $qb);
+		$count = $dao->update($model, NULL, $qb, $this->default_validation);
 
 		$this->spec($count)->should->be(1);
 	}
@@ -133,9 +132,34 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$this->spec(
 			function() use ($model, $dao, $qb)
 			{
-				$dao->update($model, $qb);
+				$validation = Mockery::mock('Validation');
+				$validation->shouldReceive('check')->andReturn(FALSE);
+				$validation->shouldReceive('errors')->andReturn(array());
+				$dao->update($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
+	}
+
+	public function itShouldThrowValidationExceptionWhenUpdatingInvalidModel()
+	{
+		$database = Mockery::mock('Database');
+		$qb = Mockery::mock('Database_Query_Builder_Update');
+
+		$model = Mockery::mock('AutoModeler_Model');
+		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
+		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_LOADED);
+
+		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+
+		$this->spec(
+			function() use ($model, $dao, $qb)
+			{
+				$validation = Mockery::mock('Validation');
+				$validation->shouldReceive('check')->andReturn(FALSE);
+				$validation->shouldReceive('errors')->andReturn(array());
+				$dao->update($model, NULL, $qb, $validation);
+			}
+		)->should->throwException('AutoModeler_Exception_Validation');
 	}
 
 	public function itShouldReturnNewModelWhenDeleted()
