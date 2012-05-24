@@ -3,9 +3,21 @@
 include_once 'classes/automodeler/model.php';
 include_once 'classes/automodeler/exception.php';
 include_once 'classes/automodeler/dao/database.php';
+include_once 'classes/automodeler/exception/validation.php';
 
 class DescribeAutoModelerDAO extends \PHPSpec\Context
 {
+	protected $default_validation;
+
+	public function before()
+	{
+		$validation = Mockery::mock('Validation');
+		$validation->shouldReceive('bind');
+		$validation->shouldReceive('rules');
+		$validation->shouldReceive('check')->andReturn(TRUE);
+		$this->default_validation = $validation;
+	}
+
 	public function itShouldCreateALoadedModel()
 	{
 		$database = Mockery::mock('Database');
@@ -20,7 +32,8 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
 
-		$new_model = $dao->create($model, $qb);
+		$this->default_validation->shouldReceive('errors')->andReturn(array());
+		$new_model = $dao->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->state())->should->be(AutoModeler_Model::STATE_LOADED);
 	}
 
@@ -39,7 +52,7 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
 
-		$new_model = $dao->create($model, $qb);
+		$new_model = $dao->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->id)->should->be(1);
 	}
 
@@ -55,9 +68,33 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$this->spec(
 			function() use ($model, $dao, $qb)
 			{
-				$dao->create($model, $qb);
+				$validation = Mockery::mock('Validation');
+				$dao->create($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
+	}
+
+	public function itShouldThrowValidationExceptionWhenCreatingInvalidModel()
+	{
+		$database = Mockery::mock('Database');
+		$qb = Mockery::mock('Database_Query_Builder_Insert');
+
+		$model = Mockery::mock('AutoModeler_Model');
+		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
+		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_NEW);
+
+		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+
+#		$dao->create($model, NULL, $qb, $this->default_validation);
+		$this->spec(
+			function() use ($model, $dao, $qb)
+			{
+				$validation = Mockery::mock('Validation');
+				$validation->shouldReceive('check')->andReturn(FALSE);
+				$validation->shouldReceive('errors')->andReturn(array());
+				$dao->create($model, NULL, $qb, $validation);
+			}
+		)->should->throwException('AutoModeler_Exception_Validation');
 	}
 
 	public function itShouldUpdateOneRow()

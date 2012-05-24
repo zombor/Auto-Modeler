@@ -136,6 +136,11 @@ class AutoModeler_Model
 			? $validation->copy($validation->as_array()+$this->as_array())
 			: $default_validation;
 
+		if ( ! $default_validation)
+		{
+			$data = new Validation($this->as_array);
+		}
+
 		$data->bind(':model', $this);
 
 		foreach ($this->_rules as $field => $rules)

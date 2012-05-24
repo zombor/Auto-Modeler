@@ -59,11 +59,17 @@ class AutoModeler_DAO_Database
 	 * @param Database_Query_Builder_Insert $qb    a qb object for mocking
 	 *
 	 */
-	public function create(AutoModeler_Model $model, Database_Query_Builder_Insert $qb = NULL)
+	public function create(AutoModeler_Model $model, Validation $validation = NULL, Database_Query_Builder_Insert $qb = NULL, Validation $default_validation = NULL)
 	{
 		if (AutoModeler_Model::STATE_NEW != $model->state())
 		{
 			throw new AutoModeler_Exception('Can\'t create a saved model!');
+		}
+
+		$status = $model->valid($validation, $default_validation);
+		if ($status !== TRUE)
+		{
+			throw new AutoModeler_Exception_Validation($status['errors'], 'Unable to validate array: '.implode(', ', $status['errors']));
 		}
 
 		$data = $model->as_array();
