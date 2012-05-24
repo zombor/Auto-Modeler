@@ -2,7 +2,7 @@
 
 ## What does it do?
 
-AutoModeler is a group of modeling classes to let you write better apps. It facilitates the seperation of persistance logic from your models.
+AutoModeler is a group of modeling classes to let you write better apps. It facilitates the separation of persistence logic from your models.
 
 ## Using it
 
