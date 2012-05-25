@@ -138,7 +138,7 @@ class AutoModeler_Model
 
 		if ( ! $default_validation)
 		{
-			$data = new Validation($this->as_array);
+			$data = new Validation($this->as_array());
 		}
 
 		$data->bind(':model', $this);
