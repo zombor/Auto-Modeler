@@ -33,21 +33,16 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 			$query->select_array(array_keys($model->as_array()));
 		}
 
-		$query->from($model->table_name());
+		$query->from($this->table_name());
 
 		$data = $query->execute($this->_db);
-
-		if ($data->count() > 1)
-		{
-			return $data;
-		}
 
 		// Process the results with this model's logic
 		if ($data->count() AND $data = $data->current())
 		{
-			$this->process_load($model, $data);
+			$this->_process_load($model, $data);
 
-			return $this->process_load_state($model);
+			return $this->_process_load_state($model);
 		}
 	}
 
@@ -94,7 +89,7 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 	 */
 	protected function _process_load(AutoModeler_Model $model, array $data)
 	{
-		$model->set_fields($data);
+		$model->data($data);
 	}
 
 	/**
