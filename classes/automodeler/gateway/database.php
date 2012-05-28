@@ -66,26 +66,19 @@ class AutoModeler_Gateway_Database extends AutoModeler_DAO_Database
 	 * @return AutoModeler_Model when loading one object
 	 */
 	protected function _load_set(
-		Database_Query_Builder_Select $query = NULL,
-		AutoModeler_Model $model = NULL
+		Database_Query_Builder_Select $query = NULL
 	)
 	{
-		if (NULL === $model)
-		{
-			$model = new $this->_model_name;
-		}
-
-		// Start
-		$model->state(AutoModeler_Model::STATE_LOADING);
-
 		// Use a normal select query by default
 		if ($query == NULL)
 		{
+			$model = new $this->_model_name;
+
 			$query = new Database_Query_Builder_Select;
 			$query->select_array(array_keys($model->as_array()));
 		}
 
-		$query->from($model->table_name());
+		$query->from($this->_table_name);
 
 		$query->as_object($this->_model_name);
 
