@@ -69,7 +69,10 @@ class AutoModeler_Model
 	 */
 	public function data(array $data)
 	{
-		$this->_data = $data;
+		foreach (array_intersect_key($data, $this->_data) as $key => $value)
+		{
+			$this->$key = $value;
+		}
 	}
 
 	/**

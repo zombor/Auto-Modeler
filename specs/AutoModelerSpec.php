@@ -40,6 +40,14 @@ class DescribeAutoModeler extends \PHPSpec\Context
 		$this->spec($model->as_array())->should->be($array);
 	}
 
+	public function itShouldFilterOutUnknownKeys()
+	{
+		$model = new AutoModeler_Model(array('id', 'foo'));
+		$model->data(array('foo' => 'bar', 'bar' => 'foo'));
+
+		$this->spec($model->as_array())->should->be(array('id' => NULL, 'foo' => 'bar'));
+	}
+
 	public function itShouldChangeState()
 	{
 		$model = new AutoModeler_Model;
