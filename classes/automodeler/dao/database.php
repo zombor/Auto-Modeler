@@ -84,7 +84,7 @@ class AutoModeler_DAO_Database
 		$qb->values($values);
 		$id = $qb->execute($this->_db);
 
-		$model->id = $id;
+		$model->id = $id[0];
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
 		return $model;
