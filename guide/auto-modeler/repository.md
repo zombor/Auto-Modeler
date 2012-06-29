@@ -1,12 +1,12 @@
-# DAO Classes
+# Repository Classes
 
-DAO (Data Access Object) classes are used to interface in a Create/Read/Update fashion with a backend data store.
+Repository classes are used to interface with a backend data store.
 
-These data stores can be a database, xml file, csv file, RESTful API backend, or anything else. All you need is a DAO interface class to implement the backend.
+These data stores can be a database, xml file, csv file, RESTful API backend, or anything else. All you need is a repository interface class to implement the backend.
 
-## Writing DAO classes
+## Writing Repository Classes
 
-If you write your own DAO class, it should follow the following conventions:
+If you write your own repository class, it should follow the following conventions:
 
  - It should have a `factory()` method for making new instances with different parameters easily.
  - It should have the following methods:
@@ -16,4 +16,4 @@ If you write your own DAO class, it should follow the following conventions:
  - Any method that changes data in the data store should take a `AutoModeler_Model` type object as the first parameter.
    - Any other parameters to these methods should be optional.
 
-
+Using these conventions will allow you to swap out backend repositories easily (even at runtime).
