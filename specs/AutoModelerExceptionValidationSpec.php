@@ -1,5 +1,6 @@
 <?php
 
+include_once 'classes/automodeler/exception.php';
 include_once 'classes/automodeler/exception/validation.php';
 
 class DescribeAutoModelerExceptionValidation extends \PHPSpec\Context

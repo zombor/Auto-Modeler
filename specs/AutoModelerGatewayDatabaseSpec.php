@@ -2,10 +2,10 @@
 
 include_once 'classes/automodeler/model.php';
 include_once 'classes/automodeler/exception.php';
-include_once 'classes/automodeler/dao/database.php';
+include_once 'classes/automodeler/gateway/database.php';
 include_once 'classes/automodeler/exception/validation.php';
 
-class DescribeAutoModelerDAO extends \PHPSpec\Context
+class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 {
 	protected $default_validation;
 
@@ -30,10 +30,10 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$model = new AutoModeler_Model(array('id', 'foo'));
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->default_validation->shouldReceive('errors')->andReturn(array());
-		$new_model = $dao->create($model, NULL, $qb, $this->default_validation);
+		$new_model = $gateway->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->state())->should->be(AutoModeler_Model::STATE_LOADED);
 	}
 
@@ -46,13 +46,13 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 			->once();
 		$qb->shouldReceive('execute')
 			->once()
-			->andReturn(1);
+			->andReturn(array(1));
 
 		$model = new AutoModeler_Model(array('id', 'foo'));
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
-		$new_model = $dao->create($model, NULL, $qb, $this->default_validation);
+		$new_model = $gateway->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->id)->should->be(1);
 	}
 
@@ -63,13 +63,13 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 
 		$model = new AutoModeler_Model;
 		$model->state(AutoModeler_Model::STATE_LOADED);
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $dao, $qb)
+			function() use ($model, $gateway, $qb)
 			{
 				$validation = Mockery::mock('Validation');
-				$dao->create($model, NULL, $qb, $validation);
+				$gateway->create($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}
@@ -83,15 +83,15 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
 		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_NEW);
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $dao, $qb)
+			function() use ($model, $gateway, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$dao->create($model, NULL, $qb, $validation);
+				$gateway->create($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception_Validation');
 	}
@@ -114,9 +114,9 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$model->id = 1;
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
-		$count = $dao->update($model, NULL, $qb, $this->default_validation);
+		$count = $gateway->update($model, NULL, $qb, $this->default_validation);
 
 		$this->spec($count)->should->be(1);
 	}
@@ -127,15 +127,15 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$qb = Mockery::mock('Database_Query_Builder_Update');
 
 		$model = new AutoModeler_Model;
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $dao, $qb)
+			function() use ($model, $gateway, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$dao->update($model, NULL, $qb, $validation);
+				$gateway->update($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}
@@ -149,15 +149,15 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
 		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_LOADED);
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $dao, $qb)
+			function() use ($model, $gateway, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$dao->update($model, NULL, $qb, $validation);
+				$gateway->update($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception_Validation');
 	}
@@ -177,8 +177,8 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$model->id = 1;
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
-		$new_model = $dao->delete($model, $qb);
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$new_model = $gateway->delete($model, $qb);
 
 		$this->spec($new_model)->should->beAnInstanceOf('AutoModeler_Model');
 		$this->spec($new_model->state())->should->be(AutoModeler_Model::STATE_NEW);
@@ -190,12 +190,12 @@ class DescribeAutoModelerDAO extends \PHPSpec\Context
 		$qb = Mockery::mock('Database_Query_Builder_Delete');
 
 		$model = new AutoModeler_Model;
-		$dao = AutoModeler_DAO_Database::factory($database, 'foos');
+		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $dao, $qb)
+			function() use ($model, $gateway, $qb)
 			{
-				$dao->delete($model, $qb);
+				$gateway->delete($model, $qb);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}
