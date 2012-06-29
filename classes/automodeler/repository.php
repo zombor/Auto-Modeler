@@ -9,7 +9,7 @@ class AutoModeler_Repository
 		static::$_repositories[$name] = $repository;
 	}
 
-	public static function _for($name)
+	public static function fetch($name)
 	{
 		return static::$_repositories[$name];
 	}
