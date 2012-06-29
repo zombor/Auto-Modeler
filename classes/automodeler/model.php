@@ -97,7 +97,12 @@ class AutoModeler_Model
 	 */
 	public function as_array()
 	{
-		return $this->_data;
+		$array = array();
+		foreach (array_keys($this->_data) as $key)
+		{
+			$array[$key] = $this->$key;
+		}
+		return $array;
 	}
 
 	/**
