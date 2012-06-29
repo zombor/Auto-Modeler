@@ -2,10 +2,10 @@
 
 include_once 'classes/automodeler/model.php';
 include_once 'classes/automodeler/exception.php';
-include_once 'classes/automodeler/gateway/database.php';
+include_once 'classes/automodeler/repository/database.php';
 include_once 'classes/automodeler/exception/validation.php';
 
-class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
+class DescribeAutoModelerRepositoryDatabase extends \PHPSpec\Context
 {
 	protected $default_validation;
 
@@ -30,10 +30,10 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 
 		$model = new AutoModeler_Model(array('id', 'foo'));
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->default_validation->shouldReceive('errors')->andReturn(array());
-		$new_model = $gateway->create($model, NULL, $qb, $this->default_validation);
+		$new_model = $repository->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->state())->should->be(AutoModeler_Model::STATE_LOADED);
 	}
 
@@ -50,9 +50,9 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 
 		$model = new AutoModeler_Model(array('id', 'foo'));
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
-		$new_model = $gateway->create($model, NULL, $qb, $this->default_validation);
+		$new_model = $repository->create($model, NULL, $qb, $this->default_validation);
 		$this->spec($new_model->id)->should->be(1);
 	}
 
@@ -63,13 +63,13 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 
 		$model = new AutoModeler_Model;
 		$model->state(AutoModeler_Model::STATE_LOADED);
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $gateway, $qb)
+			function() use ($model, $repository, $qb)
 			{
 				$validation = Mockery::mock('Validation');
-				$gateway->create($model, NULL, $qb, $validation);
+				$repository->create($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}
@@ -83,15 +83,15 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
 		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_NEW);
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $gateway, $qb)
+			function() use ($model, $repository, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$gateway->create($model, NULL, $qb, $validation);
+				$repository->create($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception_Validation');
 	}
@@ -114,9 +114,9 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$model->id = 1;
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
-		$count = $gateway->update($model, NULL, $qb, $this->default_validation);
+		$count = $repository->update($model, NULL, $qb, $this->default_validation);
 
 		$this->spec($count)->should->be(1);
 	}
@@ -127,15 +127,15 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$qb = Mockery::mock('Database_Query_Builder_Update');
 
 		$model = new AutoModeler_Model;
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $gateway, $qb)
+			function() use ($model, $repository, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$gateway->update($model, NULL, $qb, $validation);
+				$repository->update($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}
@@ -149,15 +149,15 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$model->shouldReceive('valid')->andReturn(array('status' => FALSE, 'errors' => array()));
 		$model->shouldReceive('state')->andReturn(AutoModeler_Model::STATE_LOADED);
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $gateway, $qb)
+			function() use ($model, $repository, $qb)
 			{
 				$validation = Mockery::mock('Validation');
 				$validation->shouldReceive('check')->andReturn(FALSE);
 				$validation->shouldReceive('errors')->andReturn(array());
-				$gateway->update($model, NULL, $qb, $validation);
+				$repository->update($model, NULL, $qb, $validation);
 			}
 		)->should->throwException('AutoModeler_Exception_Validation');
 	}
@@ -177,8 +177,8 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$model->id = 1;
 		$model->state(AutoModeler_Model::STATE_LOADED);
 
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
-		$new_model = $gateway->delete($model, $qb);
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
+		$new_model = $repository->delete($model, $qb);
 
 		$this->spec($new_model)->should->beAnInstanceOf('AutoModeler_Model');
 		$this->spec($new_model->state())->should->be(AutoModeler_Model::STATE_NEW);
@@ -190,12 +190,12 @@ class DescribeAutoModelerGatewayDatabase extends \PHPSpec\Context
 		$qb = Mockery::mock('Database_Query_Builder_Delete');
 
 		$model = new AutoModeler_Model;
-		$gateway = AutoModeler_Gateway_Database::factory($database, 'foos');
+		$repository = AutoModeler_Repository_Database::factory($database, 'foos');
 
 		$this->spec(
-			function() use ($model, $gateway, $qb)
+			function() use ($model, $repository, $qb)
 			{
-				$gateway->delete($model, $qb);
+				$repository->delete($model, $qb);
 			}
 		)->should->throwException('AutoModeler_Exception');
 	}

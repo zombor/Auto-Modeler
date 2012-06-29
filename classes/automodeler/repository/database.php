@@ -1,6 +1,6 @@
 <?php
 
-class AutoModeler_Gateway_Database
+class AutoModeler_Repository_Database
 {
 	protected $_db;
 	protected $_table_name;
@@ -17,23 +17,23 @@ class AutoModeler_Gateway_Database
 	}
 
 	/**
-	 * Factory method for obtaining gateway objects with a table name
+	 * Factory method for obtaining repository objects with a table name
 	 *
 	 * @param Database $database a datbase object to use
-	 * @param string $table_name the table name to use for this gateway
+	 * @param string $table_name the table name to use for this repository
 	 *
-	 * @return AutoModeler_Gateway_Database the object
+	 * @return AutoModeler_Repository_Database the object
 	 */
 	public static function factory(Database $database, $table_name)
 	{
-		$gateway = new AutoModeler_Gateway_Database($database);
-		$gateway->_table_name = (string) $table_name;
+		$repository = new AutoModeler_Repository_Database($database);
+		$repository->_table_name = (string) $table_name;
 
-		return $gateway;
+		return $repository;
 	}
 
 	/**
-	 * Returns the table name for this gateway
+	 * Returns the table name for this repository
 	 *
 	 * @return string the table name
 	 */
