@@ -41,6 +41,10 @@ class AutoModeler_Model
 		{
 			return $this->_data[$key];
 		}
+		elseif (property_exists($this, $key))
+		{
+			return $this->$key;
+		}
 
 		throw new AutoModeler_Exception('Undefined key: '.$key);
 	}
@@ -59,6 +63,10 @@ class AutoModeler_Model
 
 			// We've changed, so we aren't valid anymore
 			$this->_validated = FALSE;
+		}
+		else
+		{
+			$this->$key = $val;
 		}
 	}
 

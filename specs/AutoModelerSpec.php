@@ -17,6 +17,18 @@ class DescribeAutoModeler extends \PHPSpec\Context
 		$this->spec($model->as_array())->shouldNot->beEmpty();
 	}
 
+	public function itAssignsPropertiesExternally()
+	{
+		$model = new AutoModeler_Model(
+			array(
+				'id', 'foo'
+			)
+		);
+
+		$model->foobar = 'bar';
+		$this->spec($model->foobar)->should->be('bar');
+	}
+
 	public function itShouldStoreDataAssignedToItDirectly()
 	{
 		$model = new AutoModeler_Model(
